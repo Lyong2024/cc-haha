@@ -420,6 +420,10 @@ export async function handleAdaptersApi(
 ): Promise<Response> {
   try {
     const tail = _segments.slice(2)
+
+    // Pure-web process control lives in adapterProcess.ts (router routes
+    // /api/adapters/process/* there so optional IM SDKs are not loaded).
+
     if (tail[0] === 'wechat') {
       return await handleWechatAdaptersApi(req, tail.slice(1))
     }

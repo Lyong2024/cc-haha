@@ -1,6 +1,8 @@
 /**
- * CORS middleware for desktop and temporary open H5 access.
+ * CORS middleware for desktop, pure-web cookie sessions, and optional H5 access.
  */
+
+import { isWebAuthEnforced } from '../services/webAuthService.js'
 
 export function corsHeaders(origin?: string | null): Record<string, string> {
   const allowedOrigin = origin || 'http://localhost:3000'
@@ -8,18 +10,23 @@ export function corsHeaders(origin?: string | null): Record<string, string> {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   }
 }
 
 function baseCorsHeaders(): Record<string, string> {
-  return {
+  const headers: Record<string, string> = {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   }
+  if (isWebAuthEnforced()) {
+    headers['Access-Control-Allow-Credentials'] = 'true'
+  }
+  return headers
 }
 
 export type CorsResolution = {
@@ -31,6 +38,7 @@ export type CorsResolution = {
 export type CorsResolutionOptions = {
   h5Enabled?: boolean
   isOriginAllowed?: (origin: string) => Promise<boolean>
+  allowCredentials?: boolean
 }
 
 const LOCAL_DESKTOP_ORIGINS = new Set(['file://'])
@@ -80,6 +88,18 @@ function isLoopbackIPv4(hostname: string): boolean {
   })
 }
 
+function withOriginHeaders(origin: string): Record<string, string> {
+  const headers = {
+    ...baseCorsHeaders(),
+    'Access-Control-Allow-Origin': origin,
+  }
+  // Cookie sessions require an explicit origin (not *) plus credentials.
+  if (isWebAuthEnforced() || headers['Access-Control-Allow-Credentials'] === 'true') {
+    headers['Access-Control-Allow-Credentials'] = 'true'
+  }
+  return headers
+}
+
 export async function resolveCors(
   origin?: string | null,
   _requestOrigin?: string | null,
@@ -93,14 +113,12 @@ export async function resolveCors(
     }
   }
 
-  if (!options.h5Enabled || isLocalOrigin(origin)) {
+  // Pure-web: same-origin SPA + loopback always allowed with credentials.
+  if (isWebAuthEnforced() || !options.h5Enabled || isLocalOrigin(origin)) {
     return {
       allowed: true,
       rejected: false,
-      headers: {
-        ...baseCorsHeaders(),
-        'Access-Control-Allow-Origin': origin,
-      },
+      headers: withOriginHeaders(origin),
     }
   }
 
@@ -108,10 +126,7 @@ export async function resolveCors(
     return {
       allowed: true,
       rejected: false,
-      headers: {
-        ...baseCorsHeaders(),
-        'Access-Control-Allow-Origin': origin,
-      },
+      headers: withOriginHeaders(origin),
     }
   }
 

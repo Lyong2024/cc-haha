@@ -3,12 +3,20 @@
  *
  * 本地桌面应用场景下，使用 Anthropic API Key 做简单鉴权。
  * 验证请求头中的 Authorization: Bearer <key> 与 .env 中的 ANTHROPIC_API_KEY 是否匹配。
+ *
+ * Pure-web path (CC_HAHA_WEB_AUTH / CC_HAHA_WEB_MODE): admin session cookie is primary.
  */
 
 import { H5AccessService } from '../services/h5AccessService.js'
 import { isLocalAccessAuthorized } from '../localAccessAuth.js'
+import {
+  getWebAuthService,
+  isWebAuthEnforced,
+  readSessionTokenFromRequest,
+} from '../services/webAuthService.js'
+import { getWebPresenceService } from '../services/webPresenceService.js'
 
-type AuthResult = { valid: boolean; error?: string }
+type AuthResult = { valid: boolean; error?: string; sessionId?: string }
 
 function parseBearerToken(authHeader: string | null): AuthResult & { token?: string } {
   if (!authHeader) {
@@ -45,12 +53,40 @@ export function validateAuth(req: Request): AuthResult {
 /**
  * Helper to check auth and return 401 if invalid
  */
+export function validateWebSessionAuth(req: Request): AuthResult {
+  const token = readSessionTokenFromRequest(req)
+  if (!token) {
+    return { valid: false, error: 'Missing admin session' }
+  }
+  const session = getWebAuthService().validateSession(token)
+  if (!session) {
+    return { valid: false, error: 'Invalid or expired admin session' }
+  }
+  getWebPresenceService().touchWebSession(session.id, {
+    ip: session.ip,
+    userAgent: session.userAgent,
+  })
+  return { valid: true, sessionId: session.id }
+}
+
 export async function validateRequestAuth(
   req: Request,
   tokenOverride?: string | null,
 ): Promise<AuthResult> {
+  // Machine-local process token always wins (adapters / desktop sidecar / tests).
   if (isLocalAccessAuthorized(req, tokenOverride)) {
     return { valid: true }
+  }
+
+  if (isWebAuthEnforced()) {
+    const webAuth = validateWebSessionAuth(req)
+    if (webAuth.valid) return webAuth
+    return webAuth
+  }
+
+  const webAuth = validateWebSessionAuth(req)
+  if (webAuth.valid) {
+    return webAuth
   }
 
   const anthropicAuth = validateAuth(req)

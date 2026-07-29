@@ -47,6 +47,8 @@ const SETTINGS_TABS = [
   'providers',
   'activity',
   'general',
+  'system',
+  // Retained for stored tab ids / deep links; pure-web UI hides these entries.
   'h5Access',
   'adapters',
   'terminal',
@@ -234,6 +236,7 @@ export type SettingsTab =
   | 'providers'
   | 'activity'
   | 'general'
+  | 'system'
   | 'h5Access'
   | 'adapters'
   | 'terminal'

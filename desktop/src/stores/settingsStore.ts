@@ -25,6 +25,7 @@ import {
 } from '../types/settings'
 import type { TraceCaptureSettings } from '../types/trace'
 import { getDesktopHost } from '../lib/desktopHost'
+import { isDesktopRuntime } from '../lib/desktopRuntime'
 import type { Locale } from '../i18n'
 import {
   APP_ZOOM_CONTROL_STEP,
@@ -768,6 +769,15 @@ async function loadH5AccessSettings(previousH5Access: H5AccessSettings): Promise
   diagnostics: H5AccessDiagnostics | null
   error: string | null
 }> {
+  // Pure-web browser mode does not use H5 remote tokens; skip the control plane call.
+  if (!isDesktopRuntime()) {
+    return {
+      settings: DEFAULT_H5_ACCESS_SETTINGS,
+      diagnostics: null,
+      error: null,
+    }
+  }
+
   try {
     const { settings, diagnostics } = await h5AccessApi.get()
     return {
@@ -798,7 +808,8 @@ function isLegacyH5EndpointError(error: unknown) {
     : typeof error === 'object' && error !== null && 'status' in error && typeof error.status === 'number'
       ? error.status
       : null
-  return status === 404 || status === 405
+  // 410 = pure-web retired H5 control path
+  return status === 404 || status === 405 || status === 410
 }
 
 function getErrorMessage(error: unknown, fallback: string) {

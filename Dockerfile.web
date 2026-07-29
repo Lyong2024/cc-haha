@@ -1,0 +1,31 @@
+# Pure-web self-hosted image
+# - Install/build with pnpm (default package manager on web branch)
+# - Runtime remains Bun (Bun.serve + bun:sqlite)
+
+FROM node:22-bookworm AS build
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@11.17.0 --activate
+
+COPY package.json pnpm-lock.yaml* package-lock.json* ./
+COPY desktop/package.json desktop/pnpm-lock.yaml* desktop/
+COPY adapters/package.json adapters/
+
+# Root + desktop installs (lockfile preferred when present)
+RUN pnpm install --ignore-scripts || pnpm install
+RUN cd desktop && pnpm install --ignore-scripts || pnpm install
+
+COPY . .
+RUN cd desktop && pnpm run build
+
+FROM oven/bun:1.3
+WORKDIR /app
+COPY --from=build /app /app
+ENV SERVER_HOST=0.0.0.0
+ENV SERVER_PORT=3456
+ENV CC_HAHA_WEB_MODE=1
+ENV CC_HAHA_WEB_AUTH=1
+ENV CC_HAHA_DATA_DIR=/data
+ENV CLAUDE_H5_DIST_DIR=/app/desktop/dist
+EXPOSE 3456
+VOLUME ["/data", "/workspace"]
+CMD ["bun", "run", "./bin/claude-haha-web.ts", "start", "--host", "0.0.0.0", "--port", "3456", "--data-dir", "/data", "--work-dir", "/workspace"]

@@ -16,11 +16,19 @@ Rules closer to the code take precedence. Before editing `.github/`, `src/`, `de
 ## Repository Map
 
 - `src/`: CLI, Ink UI, commands, services, tools, shared runtime utilities, and the local API/WebSocket server.
-- `desktop/`: React desktop UI, Electron host, native/sidecar resources, and desktop build scripts.
-- `adapters/`: Telegram, Feishu, WeChat, DingTalk, and shared IM adapter utilities.
+- `desktop/`: On **`web` branch**, pure Web SPA (React + Vite); no Electron. On `main`, may still include desktop shell history.
+- `adapters/`: Telegram, Feishu, WeChat, DingTalk, and shared IM adapter utilities (web host can spawn these without Electron).
+- `docs/prds/web/`: Pure-web product design, plan, deploy notes.
 - `site/`: React documentation site and build tooling. `docs/` and `docs/en/` are its Chinese and English Markdown content sources; keep counterparts aligned when both exist.
 - `.github/workflows/`, `scripts/pr/`, and `scripts/quality-gate/`: CI routing and quality policy.
 - `release-notes/`, `scripts/release.ts`, and `.github/workflows/release-desktop.yml`: desktop release automation.
+
+## Pure-web branch (`web`)
+
+- Default package manager: **pnpm** (`packageManager: pnpm@11.17.0`). Install with `pnpm install` (root + `desktop/`).
+- Runtime remains **Bun** for `src/server` and `bin/claude-haha-web` (`Bun.serve`, `bun:sqlite`).
+- Start: `pnpm run web:start` (sets `CC_HAHA_WEB_AUTH=1`). Browser uses admin cookie login; no H5 token; no Electron/pet.
+- Details: `docs/prds/web/pure-web-design.md`, `docs/prds/web/deploy.md`.
 
 ## Implementation Rules
 

@@ -51,14 +51,12 @@ import { SkillDetail } from '../components/skills/SkillDetail'
 import { usePluginStore } from '../stores/pluginStore'
 import { PluginList } from '../components/plugins/PluginList'
 import { PluginDetail } from '../components/plugins/PluginDetail'
-import { ComputerUseSettings } from './ComputerUseSettings'
 import { McpSettings } from './McpSettings'
-import { TerminalSettings } from './TerminalSettings'
 import { DiagnosticsSettings } from './DiagnosticsSettings'
 import { TraceList } from './TraceList'
 import { ActivitySettings } from './ActivitySettings'
 import { MemorySettings } from './MemorySettings'
-import { PetSettings } from '../features/pets/PetSettings'
+import { SystemSettings } from './SystemSettings'
 import { useUIStore } from '../stores/uiStore'
 import { ClaudeOfficialLogin } from '../components/settings/ClaudeOfficialLogin'
 import { ChatGPTOfficialLogin } from '../components/settings/ChatGPTOfficialLogin'
@@ -233,16 +231,13 @@ export function Settings() {
           <div className="flex-1 flex flex-col gap-0.5">
             <TabButton icon="dns" label={t('settings.tab.providers')} active={activeTab === 'providers'} onClick={() => setActiveTab('providers')} />
             <TabButton icon="tune" label={t('settings.tab.general')} active={activeTab === 'general'} onClick={() => setActiveTab('general')} />
-            <TabButton icon="qr_code_2" label={t('settings.tab.h5Access')} active={activeTab === 'h5Access'} onClick={() => setActiveTab('h5Access')} />
+            <TabButton icon="admin_panel_settings" label="系统管理" active={activeTab === 'system'} onClick={() => setActiveTab('system')} />
             <TabButton icon="chat" label={t('settings.tab.adapters')} active={activeTab === 'adapters'} onClick={() => setActiveTab('adapters')} />
-            <TabButton icon="terminal" label={t('settings.tab.terminal')} active={activeTab === 'terminal'} onClick={() => setActiveTab('terminal')} />
             <TabButton icon="dns" label={t('settings.tab.mcp')} active={activeTab === 'mcp'} onClick={() => setActiveTab('mcp')} />
             <TabButton icon="smart_toy" label={t('settings.tab.agents')} active={activeTab === 'agents'} onClick={() => setActiveTab('agents')} />
             <TabButton icon="auto_awesome" label={t('settings.tab.skills')} active={activeTab === 'skills'} onClick={() => setActiveTab('skills')} />
             <TabButton icon="history_edu" label={t('settings.tab.memory')} active={activeTab === 'memory'} onClick={() => setActiveTab('memory')} />
             <TabButton icon="extension" label={t('settings.tab.plugins')} active={activeTab === 'plugins'} onClick={() => setActiveTab('plugins')} />
-            <TabButton icon="pets" label={t('settings.tab.pets')} active={activeTab === 'pets'} onClick={() => setActiveTab('pets')} />
-            <TabButton icon="mouse" label={t('settings.tab.computerUse')} active={activeTab === 'computerUse'} onClick={() => setActiveTab('computerUse')} />
             <TabButton icon="monitoring" label={t('settings.tab.activity')} active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} />
             <TabButton icon="account_tree" label={t('settings.tab.trace')} active={activeTab === 'trace'} onClick={() => setActiveTab('trace')} />
             <TabButton icon="monitor_heart" label={t('settings.tab.diagnostics')} active={activeTab === 'diagnostics'} onClick={() => setActiveTab('diagnostics')} />
@@ -257,16 +252,13 @@ export function Settings() {
           {activeTab === 'providers' && <ProviderSettings />}
           {activeTab === 'activity' && <ActivitySettings />}
           {activeTab === 'general' && <GeneralSettings />}
-          {activeTab === 'h5Access' && <H5AccessSettings />}
+          {activeTab === 'system' && <SystemSettings />}
           {activeTab === 'adapters' && <AdapterSettings />}
-          {activeTab === 'terminal' && <TerminalSettings showPreferences />}
           {activeTab === 'mcp' && <McpSettings />}
           {activeTab === 'agents' && <AgentManager />}
           {activeTab === 'skills' && <SkillSettings />}
           {activeTab === 'memory' && <MemorySettings />}
           {activeTab === 'plugins' && <PluginSettings />}
-          {activeTab === 'pets' && <PetSettings />}
-          {activeTab === 'computerUse' && <ComputerUseSettings />}
           {activeTab === 'trace' && <TraceList />}
           {activeTab === 'diagnostics' && <DiagnosticsSettings />}
           {activeTab === 'about' && <AboutSettings />}

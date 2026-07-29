@@ -22,10 +22,15 @@
 
 </div>
 
-Claude Code Haha is a **desktop Claude Code workspace** for macOS, Windows, and Linux: sessions, projects, branch / Worktree launch, workspace changes and diff review, permission approval, model setup, Computer Use, H5 remote access, IM integration, and scheduled tasks in one app.
+Claude Code Haha is a **Claude Code workbench**: sessions, projects, branch / Worktree launch, workspace changes and diff review, permission approval, model setup, IM integration, and scheduled tasks.
+
+| Branch | Product surface |
+|--------|-----------------|
+| **`web` (this branch)** | **Self-hosted pure Web**: browser SPA + Bun server + admin login. No Electron shell, no desktop pets, no H5 token. |
+| `main` | Desktop app (installer) + shared server/CLI history |
 
 <p align="center">
-  <a href="#desktop-preview">Desktop Preview</a> · <a href="#install-the-desktop-app">Install</a> · <a href="#desktop-highlights">Highlights</a> · <a href="#more-documentation">More Docs</a> · <a href="#sponsorship--partnership">Sponsorship</a> · <a href="#user-group">User Group</a>
+  <a href="#pure-web-self-host-web-branch">Pure Web</a> · <a href="#desktop-preview">Desktop Preview</a> · <a href="#install-the-desktop-app">Install</a> · <a href="#desktop-highlights">Highlights</a> · <a href="#more-documentation">More Docs</a>
 </p>
 
 ---
@@ -68,12 +73,44 @@ v0.5.0 shipped a full UI redesign — six colour themes that can follow your sys
 For users who want to debug the underlying CLI, server, or local development flow:
 
 ```bash
-bun install
+pnpm install
 cp .env.example .env
 ./bin/claude-haha
 ```
 
 See [environment variables](docs/en/cli/env.md) and [CLI setup](docs/en/cli/index.md) for more configuration options.
+
+## Pure Web self-host (`web` branch)
+
+Self-host the full workbench in a browser: **SPA (`desktop/`) + Bun server (`src/server`) + `claude-haha-web` CLI**.
+
+| | |
+|--|--|
+| Package manager | **pnpm@11.17.0** (see `packageManager`) |
+| Runtime | **Bun** (`Bun.serve`, `bun:sqlite`) |
+| Auth | Single admin — **username + password** on first boot; session cookie |
+| Not included | Electron, Tauri, desktop pets, H5 remote token |
+
+```bash
+git checkout web
+corepack enable && corepack prepare pnpm@11.17.0 --activate
+pnpm install
+cd desktop && pnpm install && pnpm run build && cd ..
+pnpm run web:start
+# open http://127.0.0.1:3456
+# first visit → System setup (account + password + confirm) → workbench
+```
+
+Useful commands:
+
+```bash
+pnpm run web:status
+bun run ./bin/claude-haha-web.ts start --host 0.0.0.0 --port 3456
+docker compose -f docker-compose.web.yml up --build -d   # optional
+node scripts/check-no-electron.mjs                       # guard: no electron deps
+```
+
+Design & deploy notes: [docs/prds/web/deploy.md](docs/prds/web/deploy.md) · [pure-web design](docs/prds/web/pure-web-design.md) · [task checklist](docs/prds/web/task-checklist.md).
 
 ---
 

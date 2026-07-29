@@ -22,24 +22,18 @@ type DesktopBootstrapModules = [
   { initializeTheme: () => void },
 ]
 
-export function isPetWindowLocation(search = window.location.search): boolean {
-  return new URLSearchParams(search).get('petWindow') === '1'
+/** Pet windows are removed on the pure-web product path. */
+export function isPetWindowLocation(_search = window.location.search): boolean {
+  return false
 }
 
 function loadDesktopBootstrapModules() {
-  const appModule = isPetWindowLocation()
-    ? import('./features/pets/PetApp').then(({ PetApp }) => ({ App: PetApp }))
-    : import('./App')
   return Promise.all([
-    appModule,
+    import('./App'),
     import('./components/ErrorBoundary'),
     import('./lib/diagnosticsCapture'),
     import('./stores/uiStore'),
   ])
-}
-
-if (isPetWindowLocation()) {
-  document.documentElement.dataset.windowKind = 'pet'
 }
 
 export async function bootstrapDesktopApp(

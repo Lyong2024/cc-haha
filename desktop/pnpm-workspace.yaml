@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+# pnpm v10+ build policy lives here (not package.json "pnpm" field).
+onlyBuiltDependencies:
+  - esbuild
+  - '@tailwindcss/oxide'

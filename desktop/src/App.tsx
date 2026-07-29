@@ -1,3 +1,4 @@
+import { AdminAuthGate } from './components/auth/AdminAuthGate'
 import { AppShell } from './components/layout/AppShell'
 import { useScheduledTaskDesktopNotifications } from './hooks/useScheduledTaskDesktopNotifications'
 import { installDesktopNotificationNavigation } from './lib/desktopNotificationNavigation'
@@ -22,5 +23,9 @@ export function App() {
       cleanup?.()
     }
   }, [])
-  return <AppShell />
+  return (
+    <AdminAuthGate>
+      <AppShell />
+    </AdminAuthGate>
+  )
 }

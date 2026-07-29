@@ -3,12 +3,17 @@
   "version": "999.0.0-local",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.3.14",
+  "packageManager": "pnpm@11.17.0",
   "bin": {
-    "claude-haha": "./bin/claude-haha"
+    "claude-haha": "./bin/claude-haha",
+    "claude-haha-web": "./bin/claude-haha-web"
   },
   "scripts": {
     "claude-haha": "bun run ./bin/claude-haha",
+    "claude-haha-web": "bun run ./bin/claude-haha-web.ts",
+    "web:start": "bun run ./bin/claude-haha-web.ts start",
+    "web:status": "bun run ./bin/claude-haha-web.ts status",
+    "check:no-electron": "node scripts/check-no-electron.mjs",
     "start": "bun run ./bin/claude-haha",
     "perf:local-index": "bun run scripts/perf/local-index-benchmark.ts",
     "perf:local-index:10k": "bun run scripts/perf/local-index-benchmark.ts --sessions 10000 --runs 20",
@@ -18,7 +23,7 @@
     "check:server": "bun run scripts/pr/run-server-tests.ts",
     "check:provider-contract": "bun run scripts/pr/run-provider-contract-tests.ts",
     "check:chat-contract": "bun run scripts/pr/run-chat-contract-tests.ts",
-    "check:desktop": "cd desktop && bun run lint && bun run test -- --run && bun run build",
+    "check:desktop": "cd desktop && pnpm run lint && pnpm exec vitest run && pnpm run build",
     "check:electron": "cd desktop && bun run check:electron",
     "check:adapters": "cd adapters && bun test",
     "check:native": "cd desktop && bun run build:sidecars && bun run test:compiled-sidecar-smoke && bun run check:electron && CSC_IDENTITY_AUTO_DISCOVERY=false bun run electron:package:dir && cd .. && bun run test:package-smoke:current",
@@ -49,6 +54,7 @@
     "@commander-js/extra-typings": "^14.0.0",
     "@growthbook/growthbook": "^1.6.5",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/api-logs": "^0.214.0",
     "@opentelemetry/core": "^2.6.1",
     "@opentelemetry/resources": "^2.6.1",

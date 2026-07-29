@@ -22,10 +22,15 @@
 
 </div>
 
-Claude Code Haha 是一个**桌面端 Claude Code 工作台**：把会话、多项目、分支 / Worktree、工作区改动与 Diff 审阅、权限审批、模型配置、Computer Use、H5 远程访问、IM 接入和定时任务集中到一个 macOS / Windows / Linux APP 里。
+Claude Code Haha 是一个 **Claude Code 工作台**：会话、多项目、分支 / Worktree、工作区改动与 Diff 审阅、权限审批、模型配置、IM 接入和定时任务。
+
+| 分支 | 产品形态 |
+|------|----------|
+| **`web`（当前分支）** | **纯 Web 自托管**：浏览器 SPA + Bun Server + 管理员登录。无 Electron、无桌面宠物、无 H5 Token。 |
+| `main` | 桌面安装包 + 共享 Server/CLI 历史 |
 
 <p align="center">
-  <a href="#桌面端预览">桌面端预览</a> · <a href="#安装桌面端">安装桌面端</a> · <a href="#桌面端亮点">桌面端亮点</a> · <a href="#更多文档">更多文档</a> · <a href="#赞助与合作">赞助与合作</a> · <a href="#用户交流群">用户交流群</a>
+  <a href="#纯-web-自托管web-分支">纯 Web</a> · <a href="#桌面端预览">桌面端预览</a> · <a href="#安装桌面端">安装桌面端</a> · <a href="#桌面端亮点">桌面端亮点</a> · <a href="#更多文档">更多文档</a>
 </p>
 
 ---
@@ -68,12 +73,44 @@ v0.5.0 做了一次全量 UI 重设计（「纸·墨·印」），六套配色�
 适合想调试底层 CLI、服务端或自行开发的用户：
 
 ```bash
-bun install
+pnpm install
 cp .env.example .env
 ./bin/claude-haha
 ```
 
 更多配置见 [环境变量](docs/cli/env.md) 和 [命令行安装与启动](docs/cli/index.md)。
+
+## 纯 Web 自托管（`web` 分支）
+
+浏览器完整工作台：**SPA（`desktop/`）+ Bun Server（`src/server`）+ `claude-haha-web` CLI**。
+
+| | |
+|--|--|
+| 包管理 | **pnpm@11.17.0**（`packageManager` 字段） |
+| 运行时 | **Bun**（`Bun.serve`、`bun:sqlite`） |
+| 鉴权 | 唯一管理员——首次启动设置**账号 + 密码**；后续 Cookie 会话登录 |
+| 不含 | Electron、Tauri、桌面宠物、H5 远程 Token |
+
+```bash
+git checkout web
+corepack enable && corepack prepare pnpm@11.17.0 --activate
+pnpm install
+cd desktop && pnpm install && pnpm run build && cd ..
+pnpm run web:start
+# 浏览器打开 http://127.0.0.1:3456
+# 首次访问 → 系统初始化（账号 + 密码 + 确认密码）→ 进入工作台
+```
+
+常用命令：
+
+```bash
+pnpm run web:status
+bun run ./bin/claude-haha-web.ts start --host 0.0.0.0 --port 3456
+docker compose -f docker-compose.web.yml up --build -d   # 可选
+node scripts/check-no-electron.mjs                       # 校验无 electron 依赖
+```
+
+设计与部署：[docs/prds/web/deploy.md](docs/prds/web/deploy.md) · [纯 Web 设计](docs/prds/web/pure-web-design.md) · [任务清单](docs/prds/web/task-checklist.md)。
 
 ---
 

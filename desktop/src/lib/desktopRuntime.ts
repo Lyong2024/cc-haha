@@ -186,85 +186,25 @@ export async function initializeDesktopServerUrl() {
 }
 
 async function initializeBrowserServerUrl(fallbackUrl: string) {
-  const query = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search)
-    : null
-  const queryUrl = query?.get('serverUrl') ?? null
-  const queryToken = normalizeToken(query?.get('h5Token') ?? query?.get('token'))
-  const stored = readStoredH5Connection()
+  // Pure-web product path: same-origin SPA + admin cookie session (no H5 token).
   const configuredUrl = getConfiguredBrowserServerUrl(fallbackUrl)
   const sameOriginUrl = getSameOriginServerUrl()
-  const requestedUrl =
-    normalizeServerUrl(queryUrl) ??
-    configuredUrl ??
-    stored.serverUrl ??
-    fallbackUrl
-  const requestedImplicitSameOrigin =
-    !queryUrl &&
-    !hasExplicitDefaultBaseUrl() &&
-    !!sameOriginUrl &&
-    requestedUrl === sameOriginUrl
-  const token = queryToken ?? stored.token
-  const browserH5Runtime = requiresH5AuthForServerUrl(requestedUrl)
+  const requestedUrl = configuredUrl ?? sameOriginUrl ?? fallbackUrl
 
+  clearStoredH5Connection()
   setBaseUrl(requestedUrl)
-  setAuthToken(browserH5Runtime ? token : null)
-  if (browserH5Runtime) {
-    rememberStoredH5ServerUrl(requestedUrl)
-  }
+  setAuthToken(null)
 
   try {
     await waitForHealth(requestedUrl)
   } catch (error) {
-    if (shouldFallbackFromLoopbackDevOrigin({
-      error,
-      requestedUrl,
-      fallbackUrl,
-      requestedImplicitSameOrigin,
-    })) {
+    if (sameOriginUrl && requestedUrl !== fallbackUrl) {
       setBaseUrl(fallbackUrl)
-      setAuthToken(null)
       await waitForHealth(fallbackUrl)
-      await ensureBrowserApiAccessibleWithoutH5(fallbackUrl)
       markDesktopServerReady()
       return fallbackUrl
     }
-
-    if (browserH5Runtime) {
-      clearStoredH5Token()
-      throw normalizeBrowserH5Error(error, requestedUrl)
-    }
     throw error
-  }
-
-  if (!browserH5Runtime) {
-    await ensureBrowserApiAccessibleWithoutH5(requestedUrl)
-    markDesktopServerReady()
-    return requestedUrl
-  }
-
-  if (!token) {
-    clearStoredH5Token()
-    throw new H5ConnectionRequiredError(
-      'Enter your H5 token to continue.',
-      requestedUrl,
-      'missing-token',
-    )
-  }
-
-  try {
-    await verifyH5Access()
-  } catch (error) {
-    clearStoredH5Token()
-    throw normalizeBrowserH5Error(error, requestedUrl)
-  }
-
-  if (queryToken && typeof window !== 'undefined') {
-    try {
-      window.localStorage.setItem(H5_TOKEN_STORAGE_KEY, queryToken)
-    } catch {
-      // Ignore storage failures after successful verification.
-    }
   }
 
   markDesktopServerReady()
@@ -341,7 +281,7 @@ function normalizeToken(value: string | null | undefined) {
   return trimmed ? trimmed : null
 }
 
-function getSameOriginServerUrl() {
+export function getSameOriginServerUrl() {
   if (typeof window === 'undefined') {
     return null
   }

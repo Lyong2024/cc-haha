@@ -29,8 +29,14 @@ import { handleOpenTargetsApi } from './api/open-targets.js'
 import { handleMemoryApi } from './api/memory.js'
 import { handleDesktopUiApi } from './api/desktop-ui.js'
 import { handleTracesApi } from './api/traces.js'
+import { handleAuthApi } from './api/auth.js'
+import { handleSystemApi } from './api/system.js'
 
-export async function handleApiRequest(req: Request, url: URL): Promise<Response> {
+export async function handleApiRequest(
+  req: Request,
+  url: URL,
+  context?: { clientAddress?: string | null },
+): Promise<Response> {
   const path = url.pathname
   const segments = path.split('/').filter(Boolean) // ['api', 'sessions', ...]
 
@@ -38,6 +44,12 @@ export async function handleApiRequest(req: Request, url: URL): Promise<Response
   const resource = segments[1]
 
   switch (resource) {
+    case 'auth':
+      return handleAuthApi(req, url, segments, context)
+
+    case 'system':
+      return handleSystemApi(req, url, segments)
+
     case 'sessions': {
       // Route /api/sessions/:id/chat/* to conversations handler
       const subResource = segments[3]
@@ -89,6 +101,10 @@ export async function handleApiRequest(req: Request, url: URL): Promise<Response
       return handleHahaGrokOAuthApi(req, url, segments)
 
     case 'adapters':
+      // Process control must not pull WhatsApp/Telegram SDKs (optional deps).
+      if (segments[2] === 'process') {
+        return (await import('./api/adapterProcess.js')).handleAdapterProcessApi(req, url, segments)
+      }
       // Adapter protocols pull in platform SDKs that are unnecessary for the
       // core server path. Load them only when this API is actually used.
       return (await import('./api/adapters.js')).handleAdaptersApi(req, url, segments)

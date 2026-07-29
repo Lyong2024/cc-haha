@@ -8,7 +8,10 @@
 import { handleApiRequest } from './router.js'
 import { handleWebSocket, type WebSocketData } from './ws/handler.js'
 import { resolveCors, type CorsResolution } from './middleware/cors.js'
-import { requireAuth, requireH5Token } from './middleware/auth.js'
+import { requireAuth, requireH5Token, validateWebSessionAuth } from './middleware/auth.js'
+import { isWebAuthEnforced } from './services/webAuthService.js'
+import { isPublicAuthPath } from './api/auth.js'
+import { getWebControlDatabase } from './services/webControlDb.js'
 import { teamWatcher } from './services/teamWatcher.js'
 import { cronScheduler } from './services/cronScheduler.js'
 import { handleProxyRequest } from './proxy/handler.js'
@@ -231,7 +234,32 @@ export function startServer(port = PORT, host = HOST) {
   const forceAuth =
     SERVER_OPTIONS.authRequired ||
     process.env.SERVER_AUTH_REQUIRED === '1'
+  const webAuthEnforced = isWebAuthEnforced()
   const h5AccessService = new H5AccessService()
+
+  // Warm pure-web control plane when enforced so first login hits a ready DB.
+  if (webAuthEnforced) {
+    try {
+      getWebControlDatabase()
+    } catch (error) {
+      console.error('[Server] Failed to open web-control database', error)
+    }
+  }
+
+  function requireWebAdminSession(req: Request): Response | null {
+    if (!webAuthEnforced) return null
+    if (isPublicAuthPath(new URL(req.url).pathname, req.method)) return null
+    const result = validateWebSessionAuth(req)
+    if (result.valid) return null
+    return Response.json(
+      {
+        code: 'UNAUTHORIZED',
+        error: 'Unauthorized',
+        message: result.error ?? 'Admin session required',
+      },
+      { status: 401 },
+    )
+  }
 
   let server: ReturnType<typeof Bun.serve<WebSocketData>>
 
@@ -249,7 +277,11 @@ export function startServer(port = PORT, host = HOST) {
         // is ready, so keep it independent of every other runtime subsystem.
         if (url.pathname === '/health') {
           return Response.json(
-            { status: 'ok', timestamp: new Date().toISOString() },
+            {
+              status: 'ok',
+              service: webAuthEnforced ? 'cc-haha-web' : 'cc-haha',
+              timestamp: new Date().toISOString(),
+            },
             {
               headers: {
                 'Access-Control-Allow-Origin': '*',
@@ -324,14 +356,16 @@ export function startServer(port = PORT, host = HOST) {
           h5Enabled: h5Settings.enabled,
           context: h5RequestContext,
         })
-        const h5AccessDisabledBlocked = shouldBlockDisabledH5Access({
+        const h5AccessDisabledBlocked = !webAuthEnforced && shouldBlockDisabledH5Access({
           request: req,
           url,
           h5Enabled: h5Settings.enabled,
           explicitAuthRequired: forceAuth,
           context: h5RequestContext,
         })
-        const h5AccessControlBlocked = isH5AccessControlRequest(req, url, h5RequestContext)
+        // Pure-web: H5 access control UI/API is retired; block product path when enforced.
+        const h5AccessControlBlocked = !webAuthEnforced &&
+          isH5AccessControlRequest(req, url, h5RequestContext)
 
         if (h5AccessControlBlocked) {
           return h5AccessControlRejectedResponse()
@@ -339,6 +373,28 @@ export function startServer(port = PORT, host = HOST) {
 
         if (h5AccessDisabledBlocked) {
           return h5AccessDisabledResponse()
+        }
+
+        // Pure-web: H5 token product path is retired. Keep GET readable so legacy
+        // settings fetchAll does not 410; mutating routes stay denied.
+        if (
+          webAuthEnforced &&
+          isH5AccessControlPath(url.pathname) &&
+          req.method !== 'GET' &&
+          req.method !== 'HEAD' &&
+          req.method !== 'OPTIONS'
+        ) {
+          return withCors(
+            Response.json(
+              {
+                code: 'GONE',
+                error: 'Gone',
+                message: 'H5 access token is not used in pure-web mode. Use admin login.',
+              },
+              { status: 410 },
+            ),
+            cors,
+          )
         }
 
         // Handle CORS preflight
@@ -355,13 +411,20 @@ export function startServer(port = PORT, host = HOST) {
             return corsRejectedResponse(cors)
           }
 
+          if (!petAccessAuthorized) {
+            const webAuthError = requireWebAdminSession(req)
+            if (webAuthError) {
+              return withCors(webAuthError, cors)
+            }
+          }
+
           // Enforce authentication when required
-          if (!petAccessAuthorized && authRequired) {
+          if (!petAccessAuthorized && !webAuthEnforced && authRequired) {
             const authError = await requireH5Token(req, url.searchParams.get('token'))
             if (authError) {
               return withCors(authError, cors)
             }
-          } else if (!petAccessAuthorized && forceAuth) {
+          } else if (!petAccessAuthorized && !webAuthEnforced && forceAuth) {
             const authError = await requireAuth(req, url.searchParams.get('token'))
             if (authError) {
               return withCors(authError, cors)
@@ -441,12 +504,17 @@ export function startServer(port = PORT, host = HOST) {
             return corsRejectedResponse(cors)
           }
 
-          if (authRequired) {
+          const webAuthError = requireWebAdminSession(req)
+          if (webAuthError) {
+            return withCors(webAuthError, cors)
+          }
+
+          if (!webAuthEnforced && authRequired) {
             const authError = await requireH5Token(req)
             if (authError) {
               return withCors(authError, cors)
             }
-          } else if (forceAuth) {
+          } else if (!webAuthEnforced && forceAuth) {
             const authError = await requireAuth(req)
             if (authError) {
               return withCors(authError, cors)
@@ -472,12 +540,17 @@ export function startServer(port = PORT, host = HOST) {
             return corsRejectedResponse(cors)
           }
 
-          if (authRequired) {
+          const webAuthError = requireWebAdminSession(req)
+          if (webAuthError) {
+            return withCors(webAuthError, cors)
+          }
+
+          if (!webAuthEnforced && authRequired) {
             const authError = await requireH5Token(req)
             if (authError) {
               return withCors(authError, cors)
             }
-          } else if (forceAuth) {
+          } else if (!webAuthEnforced && forceAuth) {
             const authError = await requireAuth(req)
             if (authError) {
               return withCors(authError, cors)
@@ -494,13 +567,20 @@ export function startServer(port = PORT, host = HOST) {
             return corsRejectedResponse(cors)
           }
 
+          if (!petAccessAuthorized) {
+            const webAuthError = requireWebAdminSession(req)
+            if (webAuthError) {
+              return withCors(webAuthError, cors)
+            }
+          }
+
           // Enforce authentication when required
-          if (!petAccessAuthorized && authRequired) {
+          if (!petAccessAuthorized && !webAuthEnforced && authRequired) {
             const authError = await requireH5Token(req)
             if (authError) {
               return withCors(authError, cors)
             }
-          } else if (!petAccessAuthorized && forceAuth) {
+          } else if (!petAccessAuthorized && !webAuthEnforced && forceAuth) {
             const authError = await requireAuth(req)
             if (authError) {
               return withCors(authError, cors)
@@ -510,7 +590,7 @@ export function startServer(port = PORT, host = HOST) {
           try {
             const response = await settleResponseOnRequestAbort(
               req,
-              handleApiRequest(req, url),
+              handleApiRequest(req, url, { clientAddress }),
             )
             return withCors(response, cors)
           } catch (error) {
@@ -534,12 +614,17 @@ export function startServer(port = PORT, host = HOST) {
             return corsRejectedResponse(cors)
           }
 
-          if (authRequired) {
+          const webAuthError = requireWebAdminSession(req)
+          if (webAuthError) {
+            return withCors(webAuthError, cors)
+          }
+
+          if (!webAuthEnforced && authRequired) {
             const authError = await requireH5Token(req)
             if (authError) {
               return withCors(authError, cors)
             }
-          } else if (forceAuth) {
+          } else if (!webAuthEnforced && forceAuth) {
             const authError = await requireAuth(req)
             if (authError) {
               return withCors(authError, cors)

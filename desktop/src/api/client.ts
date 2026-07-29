@@ -94,6 +94,8 @@ async function request<T>(method: string, path: string, body?: unknown, options?
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
+      // Pure-web admin session cookie (HttpOnly) must be sent same-origin.
+      credentials: 'include',
     })
     if (!res.ok) {
       const errorBody = await res.json().catch(() => res.text())
@@ -158,6 +160,7 @@ export function rawRecordDiagnosticEvent(event: {
     headers: buildHeaders(),
     body: JSON.stringify(event),
     signal: controller.signal,
+    credentials: 'include',
   }).then(async response => {
     await response.arrayBuffer()
   })
