@@ -279,7 +279,7 @@ export function startServer(port = PORT, host = HOST) {
           return Response.json(
             {
               status: 'ok',
-              service: webAuthEnforced ? 'cc-haha-web' : 'cc-haha',
+              service: webAuthEnforced ? 'haha-web' : 'haha',
               timestamp: new Date().toISOString(),
             },
             {
@@ -403,6 +403,43 @@ export function startServer(port = PORT, host = HOST) {
             return corsRejectedResponse(cors)
           }
           return new Response(null, { status: 204, headers: cors.headers })
+        }
+
+        // Pure-web host shell (in-page terminal) WebSocket
+        if (url.pathname === '/ws/host-shell') {
+          if (cors.rejected) {
+            return corsRejectedResponse(cors)
+          }
+          if (webAuthEnforced) {
+            const webAuthError = requireWebAdminSession(req)
+            if (webAuthError) {
+              return withCors(webAuthError, cors)
+            }
+          } else if (authRequired) {
+            const authError = await requireH5Token(req, url.searchParams.get('token'))
+            if (authError) {
+              return withCors(authError, cors)
+            }
+          } else if (forceAuth) {
+            const authError = await requireAuth(req, url.searchParams.get('token'))
+            if (authError) {
+              return withCors(authError, cors)
+            }
+          }
+          const upgraded = server.upgrade(req, {
+            data: {
+              sessionId: 'host-shell',
+              connectedAt: Date.now(),
+              channel: 'host-shell',
+              clientKind: 'full',
+              sdkToken: null,
+              shellSessionId: null,
+              serverPort,
+              serverHost: localConnectHost,
+            },
+          })
+          if (upgraded) return undefined
+          return new Response('WebSocket upgrade failed', { status: 400 })
         }
 
         // WebSocket upgrade

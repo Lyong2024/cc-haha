@@ -50,16 +50,16 @@ curl http://127.0.0.1:3456/health
 源码运行时先构建桌面 Web 资源：
 
 ```bash
-cd desktop
+cd web
 bun run build
 cd ..
 bun run src/server/index.ts
 ```
 
-Server 会自动查找仓库的 `desktop/dist`。从其他目录启动时，用绝对路径指定构建产物：
+Server 会自动查找仓库根目录的 `dist/`（兼容旧路径 `web/dist`）。从其他目录启动时，用绝对路径指定构建产物：
 
 ```bash
-CLAUDE_H5_DIST_DIR=/absolute/path/to/desktop/dist \
+CLAUDE_H5_DIST_DIR=/absolute/path/to/dist \
   bun run /absolute/path/to/src/server/index.ts
 ```
 
@@ -69,7 +69,7 @@ CLAUDE_H5_DIST_DIR=/absolute/path/to/desktop/dist \
 | `CLAUDE_H5_PUBLIC_BASE_URL` | 固定的公开服务地址 |
 | `CLAUDE_H5_AUTO_PUBLIC_URL=1` | 在启用 H5 时尝试生成局域网公开地址 |
 
-完整的 Token、允许来源、手机访问和 Nginx 配置见 [H5 访问](../desktop/remote.md)。
+完整的 Token、允许来源、手机访问和 Nginx 配置见 [H5 访问](../web/remote.md)。
 
 ## 访问控制
 
@@ -151,5 +151,5 @@ ws://127.0.0.1:3456/ws/<session-id>
 | API 或 WebSocket 为 `401` | H5 Token 过期、缺失，或 WebSocket 没有 query token |
 | 浏览器提示 CORS | 当前页面的精确 Origin 是否在 H5 允许列表 |
 | WebSocket 反复重连 | 代理是否支持 upgrade、Token 是否传入、空闲连接是否被代理关闭 |
-| 页面 `404` | 尚未构建 `desktop/dist`，或 `CLAUDE_H5_DIST_DIR` 指向错误 |
+| 页面 `404` | 尚未构建根目录 `dist/`，或 `CLAUDE_H5_DIST_DIR` 指向错误 |
 | 远程请求被当成本机 | 反向代理是否删除了公开 Host 和全部代理跟踪头 |

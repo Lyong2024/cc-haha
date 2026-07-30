@@ -23,7 +23,7 @@ bun run verify
 | 改动范围 | 快速验证 |
 | --- | --- |
 | CLI / Server / 工具 | `bun run check:server` |
-| 桌面端 | `bun run check:desktop` |
+| 桌面端 | `bun run check:web` |
 | IM Adapter | `bun run check:adapters` |
 | 桌面 Electron / 原生打包 | `bun run check:native` |
 | Provider / runtime / proxy | `bun run check:provider-contract` |
@@ -43,9 +43,9 @@ artifacts/quality-runs/<timestamp>/logs/<lane>.log
 改动涉及用户可见 UI、跨 WebSocket/进程流程、Electron host 或 native/packaging 时，除了自动门禁外，还应在真机上验证相关流程。纯样式、纯工具或已有组件单元测试能够完整证明的改动，不要求重复无关流程：
 
 - 起本地服务 `SERVER_PORT=3456 bun run src/server/index.ts`
-- 起桌面端 `cd desktop && bun run dev`
+- 起桌面端 `cd web && bun run dev`
 - 验证改动涉及的交互流程：页面渲染、按钮/表单行为、弹窗、快捷键、多窗口等
-- 必要时打本地 macOS 包 `desktop/scripts/build-macos-arm64.sh` 做完整验证
+- 必要时打本地 macOS 包 `web/scripts/build-macos-arm64.sh` 做完整验证
 
 ## 3. PR 必须附上影响范围和测试说明
 

@@ -1,4 +1,4 @@
-# Claude Code Haha
+# Claude Code Haha (`web` branch · pure-web self-host)
 
 <p align="center">
   <picture>
@@ -9,248 +9,159 @@
 
 <div align="center">
 
-[![GitHub Stars](https://img.shields.io/github/stars/NanmiCoder/cc-haha?style=social)](https://github.com/NanmiCoder/cc-haha/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/NanmiCoder/cc-haha?style=social)](https://github.com/NanmiCoder/cc-haha/network/members)
-[![GitHub Issues](https://img.shields.io/github/issues/NanmiCoder/cc-haha)](https://github.com/NanmiCoder/cc-haha/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/NanmiCoder/cc-haha)](https://github.com/NanmiCoder/cc-haha/pulls)
-[![License](https://img.shields.io/badge/License-MIT-blue)](https://github.com/NanmiCoder/cc-haha/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![English](https://img.shields.io/badge/🇺🇸_English-Current-blue)](README.md)
 [![中文](https://img.shields.io/badge/🇨🇳_简体中文-Available-green)](README.zh-CN.md)
-[![Docs](https://img.shields.io/badge/📖_Documentation-Visit-FF7A00)](https://cchaha.ai)
 
 **English** · [简体中文](README.zh-CN.md)
 
 </div>
 
-Claude Code Haha is a **Claude Code workbench**: sessions, projects, branch / Worktree launch, workspace changes and diff review, permission approval, model setup, IM integration, and scheduled tasks.
+Claude Code Haha on the **`web` branch** is a **self-hosted browser workbench**: SPA + Bun server + single-admin login. Sessions, model providers, Skills/MCP, IM adapters, scheduled tasks, Agent CLI tools, and system management run **without Electron**.
 
-| Branch | Product surface |
-|--------|-----------------|
-| **`web` (this branch)** | **Self-hosted pure Web**: browser SPA + Bun server + admin login. No Electron shell, no desktop pets, no H5 token. |
-| `main` | Desktop app (installer) + shared server/CLI history |
+| Surface | Status on `web` |
+|---------|-----------------|
+| Browser SPA + Bun API / WebSocket | **Yes** |
+| Admin setup (username + password) + cookie session | **Yes** |
+| Host OS default terminal (server process user) | **Yes** |
+| Multi Agent CLI (Claude / Codex / Gemini / Grok / …) | **Yes** |
+| Grok Official multi-account pool + quota sync | **Yes** |
+| Import providers from Claude Code / desktop `cc-haha` (opt-in) | **Yes** |
+| Electron / Tauri shell | **Removed** |
+| Desktop pets | **Removed** |
+| H5 remote token | **Removed** |
+| In-browser PTY terminal | **Not available** (opens host terminal instead) |
 
-<p align="center">
-  <a href="#pure-web-self-host-web-branch">Pure Web</a> · <a href="#desktop-preview">Desktop Preview</a> · <a href="#install-the-desktop-app">Install</a> · <a href="#desktop-highlights">Highlights</a> · <a href="#more-documentation">More Docs</a>
-</p>
-
----
-
-## Desktop Preview
-
-The Claude Code Haha desktop app brings sessions, multi-project navigation, branch / Worktree controls, file changes, diff review, permission approval, model setup, and remote access into one graphical workspace for daily development beyond the terminal.
-
-v0.5.0 shipped a full UI redesign — six colour themes that can follow your system's light/dark setting. All six shots below are from a real v0.5.0 build.
-
-<p align="center">
-  <a href="https://github.com/NanmiCoder/cc-haha/releases"><img src="https://img.shields.io/badge/⬇_Download_Desktop-macOS_%7C_Windows_%7C_Linux-FF7A00?style=for-the-badge" alt="Download Desktop"></a>
-  &nbsp;
-  <a href="docs/en/start/install.md"><img src="https://img.shields.io/badge/📖_Install_Guide-Guide-gray?style=for-the-badge" alt="Install Guide"></a>
-</p>
-
-<table>
-  <tr>
-    <td align="center" width="33%"><img src="docs/images/app/session-main.webp" alt="Desktop session view"><br><b>Say it once, watch it finish</b><br><sub>Tool calls and every edit stay in the thread</sub></td>
-    <td align="center" width="33%"><img src="docs/images/app/workspace-diff.webp" alt="Workspace diff review"><br><b>See exactly what changed</b><br><sub>Syntax-highlighted diffs; you decide what lands</sub></td>
-    <td align="center" width="33%"><img src="docs/images/app/workspace-preview.webp" alt="Built-in browser previewing the page that was just changed"><br><b>Verify on the spot</b><br><sub>Open your dev server inside the app</sub></td>
-  </tr>
-  <tr>
-    <td align="center" width="33%"><img src="docs/images/app/session-dark.webp" alt="Session view in the dark theme"><br><b>Six themes, follows the system</b><br><sub>Light and dark, six palettes in all</sub></td>
-    <td align="center" width="33%"><img src="docs/images/app/skill-market.webp" alt="Skill marketplace"><br><b>Missing a trick? Install it</b><br><sub>Source and safety status shown up front</sub></td>
-    <td align="center" width="33%"><img src="docs/images/app/pet-desktop.webp" alt="Desktop pet settings with the floating pet"><br><b>Company while it works</b><br><sub>Dada, Huhu, Bubu and Huihui follow the task</sub></td>
-  </tr>
-</table>
+> Looking for the classic desktop installer product? Use the **`main`** branch / [Releases](https://github.com/NanmiCoder/__KEEP_HAHA__/releases).
 
 ---
 
-## Install the Desktop App
+## Quick start
 
-1. Download the macOS / Windows / Linux desktop installer from [Releases](https://github.com/NanmiCoder/cc-haha/releases).
-2. On first launch, configure your model provider, API key, and default model in Settings.
-3. Public macOS releases require signing and notarization. Draft or unsigned temporary builds may still need one-time manual approval. Unsigned Windows installers may show SmartScreen; click "More info" -> "Run anyway". See the [desktop installation guide](docs/en/start/install.md).
-
-## Run the CLI from Source
-
-For users who want to debug the underlying CLI, server, or local development flow:
-
-```bash
-pnpm install
-cp .env.example .env
-./bin/claude-haha
-```
-
-See [environment variables](docs/en/cli/env.md) and [CLI setup](docs/en/cli/index.md) for more configuration options.
-
-## Pure Web self-host (`web` branch)
-
-Self-host the full workbench in a browser: **SPA (`desktop/`) + Bun server (`src/server`) + `claude-haha-web` CLI**.
-
-| | |
-|--|--|
-| Package manager | **pnpm@11.17.0** (see `packageManager`) |
-| Runtime | **Bun** (`Bun.serve`, `bun:sqlite`) |
-| Auth | Single admin — **username + password** on first boot; session cookie |
-| Not included | Electron, Tauri, desktop pets, H5 remote token |
+**Requirements:** Node (for pnpm), [Bun](https://bun.sh) 1.3+, Windows / macOS / Linux.
 
 ```bash
 git checkout web
 corepack enable && corepack prepare pnpm@11.17.0 --activate
 pnpm install
-cd desktop && pnpm install && pnpm run build && cd ..
-pnpm run web:start
-# open http://127.0.0.1:3456
-# first visit → System setup (account + password + confirm) → workbench
+cd web && pnpm install && cd ..
+pnpm run web:build          # SPA → dist/ (and web/dist during build)
+pnpm run dev                # http://127.0.0.1:3456
 ```
 
-Useful commands:
+1. Open **http://127.0.0.1:3456**
+2. **First run:** system setup — admin **username + password + confirm**
+3. Configure model providers in **Settings → Providers**
+4. Create or resume sessions (history shares CLI JSONL under `~/.claude/projects/...`)
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `pnpm run dev` / `web:start` | Start pure-web server |
+| `pnpm run web:build` | Build SPA only |
+| `pnpm run web:dev` | Build SPA then start |
+| `pnpm run web:status` | Server status |
+| `pnpm run check:no-electron` | Guard: no Electron product deps |
+| `docker compose -f docker-compose.web.yml up --build -d` | Optional container |
+
+CLI entry:
 
 ```bash
-pnpm run web:status
 bun run ./bin/claude-haha-web.ts start --host 0.0.0.0 --port 3456
-docker compose -f docker-compose.web.yml up --build -d   # optional
-node scripts/check-no-electron.mjs                       # guard: no electron deps
+# optional: --data-dir PATH
 ```
 
-Design & deploy notes: [docs/prds/web/deploy.md](docs/prds/web/deploy.md) · [pure-web design](docs/prds/web/pure-web-design.md) · [task checklist](docs/prds/web/task-checklist.md).
+Design & deploy: [docs/prds/web/deploy.md](docs/prds/web/deploy.md) · [pure-web design](docs/prds/web/pure-web-design.md)
 
 ---
 
-## Desktop Highlights
+## What you get
 
-- **Multi-session workspace**: tabs, project switching, terminal entry, and session history in one place, with a resizable sidebar.
-- **Branch / Worktree launch**: choose a repository branch and decide whether to use the current working tree or an isolated Worktree.
-- **Review edits file by file**: the workspace lists this turn's changes; open any file for a syntax-highlighted diff, or undo the whole turn.
-- **Five permission modes**: from "ask every time" to "skip permissions" — risky commands, tool calls, and follow-up questions are all approved in the GUI.
-- **Bring your own model**: sign in to Claude, ChatGPT, or Grok; use presets for DeepSeek, Kimi, Zhipu GLM and others; or point it at LM Studio and Ollama running locally.
-- **Six colour themes**: white, paper, warm classic, celadon, ink night, and ink blue — optionally following your system's light/dark setting.
-- **Skill marketplace**: discover, preview, and install third-party skills from ClawHub / SkillHub, with source and safety status shown up front.
-- **Session activity panel**: track task progress, background tasks, SubAgents, and sources in one side panel.
-- **Computer Use**: let the agent take screenshots, click, type, and control desktop apps after authorization.
-- **Desktop pets**: Dada, Huhu, Bubu, and Huihui change what they do with the task at hand — or raise one of your own (off by default).
-- **H5 remote access**: scan a QR code to continue the session in your phone browser; locking the screen won't kill a running task.
-- **IM integration**: chat, switch projects, and approve actions through Telegram / Feishu / WeChat / DingTalk / WhatsApp.
-- **Scheduled tasks and usage stats**: run planned tasks in their own sessions and track local token usage trends.
+- **Workbench UI** — multi-session tabs, projects, workspace/diff, permissions, themes
+- **Providers** — Claude / ChatGPT / Grok official OAuth, third-party Anthropic/OpenAI-compatible APIs, local gateways
+- **External provider import (opt-in)** — discover Claude Code (`~/.claude/settings.json`) and desktop **`cc-haha`** (`~/.claude/cc-haha/providers.json`); **you choose what to import**. No silent merge, no automatic switch of the write directory. Name collisions get a source suffix (e.g. `DeepSeek (cc-haha)`)
+- **Grok Official account pool** — multi-account list, sticky “default account”, round-robin among healthy accounts, quota sync (**weekly** via `format=credits` + **monthly** included budget), credential refresh, auth.json-style export
+- **Agent CLI manager** — switch active CLI brand (Claude Code, Codex, Gemini, Grok, …), set default, open host shell
+- **Agents / Skills / MCP / plugins**
+- **IM adapters** — Telegram / Feishu / WeChat / DingTalk / WhatsApp (hosted by the server process, no Electron)
+- **System admin** — online users (Web + IM, read-only), IM process start/stop, logout
+- **Security** — forced admin login; lockout after 10 failed logins (browser fingerprint + IP, 1 hour); password show/hide on auth forms
+- **Host terminal / host shell** — opens the **machine’s default terminal** as the **server OS user**; cwd prefers the current session project when available
 
 ---
 
-## More Documentation
+## Data directories (important)
 
-Full documentation site: <https://cchaha.ai>
+Providers and pure-web control state are **files / SQLite under a product data dir**, not “the monorepo database”.
 
-| Section | Documents |
+| Path | Role |
 |------|------|
-| **Getting started** | [What this is](docs/en/start/index.md) · [Download and install](docs/en/start/install.md) · [Connect a model provider](docs/en/start/models.md) · [Your first session](docs/en/start/first-session.md) · [Troubleshooting](docs/en/start/troubleshooting.md) |
-| **Desktop features** | [Feature overview](docs/en/desktop/index.md) · [Computer Use](docs/en/desktop/computer-use.md) · [Desktop pets](docs/en/desktop/pets.md) · [Phone H5 and IM relay](docs/en/desktop/remote.md) |
-| **IM integrations** | [Overview and pairing](docs/en/im/index.md) · [Feishu](docs/en/im/feishu.md) · [Telegram](docs/en/im/telegram.md) · [WeChat](docs/en/im/wechat.md) · [DingTalk](docs/en/im/dingtalk.md) · [WhatsApp](docs/en/im/whatsapp.md) |
-| **CLI** | [Install and run](docs/en/cli/index.md) · [Command reference](docs/en/cli/reference.md) · [Environment variables](docs/en/cli/env.md) |
-| **Internals** | [Desktop architecture](docs/en/internals/desktop.md) · [Multi-agent system](docs/en/internals/agent.md) · [Skills system](docs/en/internals/skills.md) · [Memory system](docs/en/internals/memory.md) · [Computer Use architecture](docs/en/internals/computer-use.md) · [Local server and API](docs/en/internals/server.md) · [Channel system](docs/en/internals/channel.md) · [Project structure](docs/en/internals/structure.md) · [Contributing and quality gates](docs/en/internals/contributing.md) |
+| `HAHA_DATA_DIR` (or `--data-dir`) | **Active write root** for this process. Pure-web default: `~/.claude/haha-web` |
+| `~/.claude/haha` / `~/.claude/cc-haha` | Brand product folders (desktop often uses **`cc-haha`**) |
+| `~/.claude/settings.json` | **Claude Code** user settings (`env` API keys / base URL / models) |
+| `~/.claude/projects/...` | Shared session transcripts (JSONL) |
+
+**Isolation rules:**
+
+1. The running instance only **writes** to its active data dir (`HAHA_DATA_DIR` / default `haha-web`).
+2. Claude Code and desktop `cc-haha` are **read for discovery**; import is **manual** in Settings → Providers → **External settings sources**.
+3. Session history under `~/.claude/projects` remains shared with the CLI/desktop when using the same machine user.
+
+Set a dedicated dir when you need full isolation:
+
+```bash
+export HAHA_DATA_DIR="$HOME/.claude/haha-web-dev"
+pnpm run dev
+```
 
 ---
 
-## Sponsorship & Partnership
+## Architecture (short)
 
-This project is maintained in the author's spare time. Corporate or individual sponsorships are welcome to support ongoing development. Custom features, integrations, and business partnerships are also open for discussion.
-
-<table>
-  <thead>
-    <tr>
-      <th width="220">Sponsor</th>
-      <th align="left">Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://www.shengsuanyun.com/?from=CH_LEJ88KWR">
-          <img src="docs/images/sponsors/shengsuanyun-logo.svg" width="180" alt="ShengSuanYun">
-        </a>
-      </td>
-      <td valign="middle">
-        Thanks to <a href="https://www.shengsuanyun.com/?from=CH_LEJ88KWR">ShengSuanYun</a> for sponsoring this project. ShengSuanYun is an industrial-grade AI task parallel execution platform for AI Native Teams, aggregating Claude, ChatGPT, Gemini, and other LLM, image, and video model capacity through direct, non-reverse-engineered access. Its platform SLA reaches 99.7%, with <a href="https://watch.shengsuanyun.com/status/shengsuanyun">service status</a> available online. It also supports dedicated enterprise gateways, cost and permission controls, smart routing, security protection, BYOK, usage-based billing, upcoming tokens plans, and invoicing. New users registering through <a href="https://www.shengsuanyun.com/?from=CH_LEJ88KWR">this link</a> can receive 10 yuan in model credits plus a 10% first top-up bonus.
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://teamorouter.com/?utm_source=cc_haha&utm_medium=referral&utm_campaign=ai_directory">
-          <img src="docs/images/sponsors/teamorouter-logo.svg" width="180" alt="TeamoRouter">
-        </a>
-      </td>
-      <td valign="middle">
-        Thanks to <a href="https://teamorouter.com/?utm_source=cc_haha&utm_medium=referral&utm_campaign=ai_directory">TeamoRouter</a> for sponsoring this project. TeamoRouter is an enterprise-grade Agentic LLM gateway for developers, AI teams, and businesses. Without any subscription, it lets you use Claude Code, Codex, Gemini CLI, and other popular AI agents through a single unified API, with API pricing at discounts of up to 90%. It aggregates hundreds of official model providers and trusted infrastructure partners — including OpenAI, Anthropic, Vertex, Azure, and AWS Bedrock — each verified for 100% Agent protocol compatibility, cache performance, and request traceability, delivering near-official TTFT, a 99.6% SLA, throughput up to 5,000 QPM, and industry-leading cache hit rates rather than reverse-engineered endpoints. It also offers centralized billing, team management, BYOK, smart routing, usage analytics, and dedicated support, and Teamo Desktop lets you use these AI agents with one-click setup. New users who register through <a href="https://teamorouter.com/?utm_source=cc_haha&utm_medium=referral&utm_campaign=ai_directory">this link</a> receive 10% off their first top-up.
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-📧 **Contact**: relakkes@gmail.com
+```text
+Browser SPA (web/ → dist/)
+        | Cookie session (admin)
+        v
+Bun server (src/server)
+  |-- providers.json + settings  (active HAHA_DATA_DIR)
+  |-- optional import from Claude Code / cc-haha (user opt-in)
+  |-- Grok account pool (Grok Official only)
+  |-- sessions JSONL (~/.claude/projects)
+  |-- web-control SQLite (admin / presence)
+  |-- CLI / Agent CLI subprocess per chat
+  |-- open host terminal / host shell
+```
 
 ---
 
-## User Group
+## More documentation
 
-Scan the QR code below to join the cc-haha user group on Feishu (Lark) — the conversation there is mostly in Chinese. For questions and bug reports in English, [Issues](https://github.com/NanmiCoder/cc-haha/issues) is the better place.
+| Topic | Doc |
+|-------|-----|
+| Deploy / Docker / env | [docs/prds/web/deploy.md](docs/prds/web/deploy.md) |
+| Product design | [docs/prds/web/pure-web-design.md](docs/prds/web/pure-web-design.md) |
+| CLI env | [docs/en/cli/env.md](docs/en/cli/env.md) |
+| IM | [docs/en/im/index.md](docs/en/im/index.md) |
+| Server internals | [docs/en/internals/server.md](docs/en/internals/server.md) |
+| Contributing | [docs/en/internals/contributing.md](docs/en/internals/contributing.md) |
 
-<p align="center">
-  <img src="docs/images/community/feishu-group-qr.png" width="300" alt="cc-haha Feishu user group QR code">
-</p>
-
----
-
-## ☕ Buy Me a Coffee
-
-If this project helps you, consider buying me a coffee — every bit of support keeps this project going ❤️
-
-<table>
-<tr>
-<td align="center" width="33%">
-<img src="docs/images/donate/wechat_pay.jpeg" width="250" alt="WeChat Pay"><br>
-<b>WeChat Pay</b>
-</td>
-<td align="center" width="33%">
-<img src="docs/images/donate/zfb_pay.png" width="250" alt="Alipay"><br>
-<b>Alipay</b>
-</td>
-<td align="center" width="33%">
-<a href="https://buymeacoffee.com/relakkes" target="_blank">
-<img src="docs/images/donate/bmc_button.png" width="250" alt="Buy Me a Coffee">
-</a><br>
-<b>Buy Me a Coffee</b>
-</td>
-</tr>
-</table>
+Full site (desktop-oriented docs may still describe `main`): <https://Haha.ai>
 
 ---
 
-## Tech Stack
+## Tech stack (`web`)
 
-| Category | Technology |
-|------|------|
-| Language | TypeScript |
-| Desktop app | Electron |
-| Desktop UI | React + Vite |
-| Local runtime | [Bun](https://bun.sh) |
-| Terminal UI | React + [Ink](https://github.com/vadimdemedes/ink) |
-| CLI parsing | Commander.js |
-| API | Anthropic SDK |
-| Protocols | MCP, LSP |
-
-## Thanks
-
-Thanks to the following open-source projects and community practices for reference and inspiration:
-
-- [React](https://github.com/facebook/react): frontend engineering and component-based UI ecosystem.
-- [Electron](https://github.com/electron/electron): cross-platform desktop app capabilities and engineering practices.
-- [cc-switch](https://github.com/farion1231/cc-switch): reference for model provider configuration.
+| Layer | Stack |
+|-------|--------|
+| SPA | React + Vite + TypeScript (`web/`) |
+| Package manager | **pnpm@11.17.0** |
+| Server / CLI runtime | **Bun** (`Bun.serve`, `bun:sqlite`) |
+| Control plane | SQLite WAL (`web-control`) |
+| Device fingerprint (login lockout) | [@fingerprintjs/fingerprintjs](https://github.com/fingerprintjs/fingerprintjs) (open source) |
 
 ---
 
-## ⭐ Star History
+## License
 
-If this project helps you, please support it with a ⭐ Star so more people can discover Claude Code Haha.
-
-<a href="https://www.star-history.com/#NanmiCoder/cc-haha&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=NanmiCoder/cc-haha&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=NanmiCoder/cc-haha&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=NanmiCoder/cc-haha&type=Date" />
-  </picture>
-</a>
+MIT — see [LICENSE](LICENSE).

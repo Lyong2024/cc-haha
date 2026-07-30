@@ -1,7 +1,7 @@
 /**
  * Provider types — preset-based provider configuration.
  *
- * Providers are stored in ~/.claude/cc-haha/providers.json as a lightweight index.
+ * Providers are stored in ~/.claude/haha/providers.json as a lightweight index.
  * The active provider's env vars are written to ~/.claude/settings.json.
  */
 
@@ -66,6 +66,44 @@ export const ModelContextWindowsSchema = z.record(
 export const ToolSearchEnabledSchema = z.boolean()
 export const DisableExperimentalBetasSchema = z.boolean()
 
+/** Account identity / billing snapshot (inspired by chenyme/grok2api account cards). */
+export const ProviderAccountInfoSchema = z.object({
+  email: z.string().nullable().optional(),
+  accountId: z.string().nullable().optional(),
+  accountLabel: z.string().nullable().optional(),
+  /** Human type label: api_key | oauth | auth_token | dual_token | ... */
+  type: z.string().optional(),
+})
+
+export const ProviderQuotaSnapshotSchema = z.object({
+  syncedAt: z.string(),
+  source: z.enum(['headers', 'upstream', 'oauth', 'unavailable', 'error']),
+  remaining: z.number().nullable().optional(),
+  limit: z.number().nullable().optional(),
+  used: z.number().nullable().optional(),
+  usagePercent: z.number().nullable().optional(),
+  weeklyRemaining: z.number().nullable().optional(),
+  weeklyLimit: z.number().nullable().optional(),
+  monthlyRemaining: z.number().nullable().optional(),
+  monthlyLimit: z.number().nullable().optional(),
+  resetAt: z.string().nullable().optional(),
+  credentialExpiresAt: z.string().nullable().optional(),
+  lastRefreshAt: z.string().nullable().optional(),
+  status: z.enum(['ok', 'limited', 'error', 'unknown']).optional(),
+  message: z.string().nullable().optional(),
+})
+
+/** Provenance when a provider was imported from an external source (user opt-in). */
+export const ProviderImportedFromSchema = z.object({
+  sourceId: z.string(),
+  sourceLabel: z.string(),
+  sourcePath: z.string().optional(),
+  externalId: z.string(),
+  fingerprint: z.string().optional(),
+  importedAt: z.string(),
+})
+export type ProviderImportedFrom = z.infer<typeof ProviderImportedFromSchema>
+
 export const SavedProviderSchema = z.object({
   id: z.string(),
   presetId: z.string(),
@@ -82,6 +120,12 @@ export const SavedProviderSchema = z.object({
   toolSearchEnabled: ToolSearchEnabledSchema.optional(),
   disableExperimentalBetas: DisableExperimentalBetasSchema.optional(),
   notes: z.string().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+  accountInfo: ProviderAccountInfoSchema.optional(),
+  quotaSnapshot: ProviderQuotaSnapshotSchema.optional(),
+  /** Set when user imported from Claude Code / cc-haha / sibling haha. */
+  importedFrom: ProviderImportedFromSchema.optional(),
 })
 
 export const ProvidersIndexSchema = z.object({
@@ -141,12 +185,42 @@ export const ReorderProvidersSchema = z.object({
 // TypeScript types
 export type ModelMapping = z.infer<typeof ModelMappingSchema>
 export type Model1mSupport = z.infer<typeof Model1mSupportSchema>
+export type ProviderAccountInfo = z.infer<typeof ProviderAccountInfoSchema>
+export type ProviderQuotaSnapshot = z.infer<typeof ProviderQuotaSnapshotSchema>
 export type SavedProvider = z.infer<typeof SavedProviderSchema>
 export type ProvidersIndex = z.infer<typeof ProvidersIndexSchema>
 export type CreateProviderInput = z.infer<typeof CreateProviderSchema>
 export type UpdateProviderInput = z.infer<typeof UpdateProviderSchema>
 export type TestProviderInput = z.infer<typeof TestProviderSchema>
 export type ReorderProvidersInput = z.infer<typeof ReorderProvidersSchema>
+
+export type ProviderCredentialExport = {
+  exportedAt: string
+  version: 1
+  /** api_key (default) | grok_oauth | openai_oauth */
+  kind?: 'api_key' | 'grok_oauth' | 'openai_oauth'
+  /** Suggested download filename (e.g. auth.json for Grok OAuth). */
+  filename?: string
+  /** Raw OAuth token file payload when kind is *_oauth (auth.json style). */
+  auth?: Record<string, unknown>
+  provider: {
+    id: string
+    presetId: string
+    name: string
+    baseUrl: string
+    apiFormat: ApiFormat
+    runtimeKind?: ProviderRuntimeKind
+    authStrategy?: ProviderAuthStrategy
+    apiKey: string
+    models: ModelMapping
+    model1mSupport?: Model1mSupport
+    notes?: string
+    createdAt?: string
+    updatedAt?: string
+    accountInfo?: ProviderAccountInfo
+    quotaSnapshot?: ProviderQuotaSnapshot
+  }
+}
 
 export interface ProviderTestStepResult {
   success: boolean

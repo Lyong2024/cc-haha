@@ -144,16 +144,16 @@ const ADAPTERS_SCOPE: CoverageScope = {
 const DESKTOP_SCOPE: CoverageScope = {
   id: 'desktop',
   title: 'Desktop React',
-  includePrefixes: ['desktop/src/'],
+  includePrefixes: ['web/src/'],
   excludePrefixes: [
-    'desktop/src/mocks/',
-    'desktop/src/types/',
+    'web/src/mocks/',
+    'web/src/types/',
     // Dev-only tooling, same category as mocks/. `dev/` holds the component
     // gallery, which Vite never bundles (its build input is index.html alone)
     // and which exists precisely to be looked at by a person — unit-testing a
     // page whose whole job is rendering every primitive would assert that the
     // primitives render, which their own tests already do.
-    'desktop/src/dev/',
+    'web/src/dev/',
   ],
   excludeSuffixes: ['.test.ts', '.test.tsx', '.d.ts', 'vite-env.d.ts', '.css'],
 }
@@ -442,7 +442,7 @@ export function hasUsableCoverageSummary(summary: CoverageSummary) {
 
 async function runCommand(command: string[], cwd: string, logPath: string) {
   const started = Date.now()
-  const sandboxHome = mkdtempSync(join(tmpdir(), 'cc-haha-coverage-test-'))
+  const sandboxHome = mkdtempSync(join(tmpdir(), 'haha-coverage-test-'))
   try {
     const proc = Bun.spawn(command, {
       cwd,
@@ -908,7 +908,7 @@ export async function runCoverageGate(options: {
 
   const desktop = await runSuite(
     'desktop',
-    'Desktop React',
+    'Web React SPA',
     [
       'bun',
       '--no-env-file',
@@ -922,15 +922,15 @@ export async function runCoverageGate(options: {
       `--coverage.reportsDirectory=${join(outputDir, 'desktop')}`,
       '--testTimeout=20000',
     ],
-    join(rootDir, 'desktop'),
+    join(rootDir, 'web'),
     join(outputDir, 'desktop'),
     () => parseVitestSummary(join(outputDir, 'desktop', 'coverage-summary.json')),
   )
   suites.push(desktop)
   const desktopLcovPath = join(outputDir, 'desktop', 'lcov.info')
   if (desktop.status === 'passed' && existsSync(desktopLcovPath)) {
-    const desktopLcov = prefixRelativeLcovSourcePaths(readFileSync(desktopLcovPath, 'utf8'), 'desktop')
-    for (const [file, coverage] of lcovLineCoverage(desktopLcov, 'desktop', DESKTOP_SCOPE, rootDir)) {
+    const desktopLcov = prefixRelativeLcovSourcePaths(readFileSync(desktopLcovPath, 'utf8'), 'web')
+    for (const [file, coverage] of lcovLineCoverage(desktopLcov, 'web', DESKTOP_SCOPE, rootDir)) {
       coverageByFile.set(file, coverage)
     }
   }

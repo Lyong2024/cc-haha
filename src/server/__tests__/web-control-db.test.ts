@@ -76,7 +76,7 @@ describe('web-control database', () => {
 
       expect(() =>
         auth.login({ username: 'wrong', password: 'password-long-enough' }),
-      ).toThrow(/Invalid credentials/)
+      ).toThrow(/账号或密码错误|Invalid credentials/)
 
       presence.touchImActivity({
         platform: 'telegram',
@@ -104,6 +104,61 @@ describe('web-control database', () => {
       expect(() =>
         auth.setupAdmin({ username: 'admin', password: 'short' }),
       ).toThrow(/Password/)
+    } finally {
+      control.close()
+    }
+  })
+
+  test('host terminal service resolves existing cwd', async () => {
+    const { openHostTerminal } = await import('../services/hostTerminalService.js')
+    // We only validate path resolution errors here (no GUI spawn assertion in CI).
+    await expect(openHostTerminal({ cwd: '__definitely_missing_dir__' })).rejects.toThrow(/does not exist|not a directory|Cannot access/)
+  })
+
+  test('locks login after 10 failures for fingerprint and IP', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'web-control-'))
+    const control = openWebControlDatabase({ dataDir: tempDir })
+    try {
+      const auth = new WebAuthService(control)
+      auth.setupAdmin({ username: 'admin', password: 'password-long-enough' })
+
+      const client = {
+        ip: '203.0.113.10',
+        fingerprint: 'test-fp-device-a',
+      }
+
+      for (let i = 0; i < 9; i += 1) {
+        try {
+          auth.login({ username: 'admin', password: 'wrong-password' }, client)
+          throw new Error('expected login to fail')
+        } catch (error) {
+          expect((error as { code?: string }).code).toBe('UNAUTHORIZED')
+          const lockout = (error as { lockout?: { remainingAttempts: number } }).lockout
+          expect(lockout?.remainingAttempts).toBe(9 - i)
+        }
+      }
+
+      try {
+        auth.login({ username: 'admin', password: 'wrong-password' }, client)
+        throw new Error('expected lock')
+      } catch (error) {
+        expect((error as { code?: string }).code).toBe('LOCKED')
+        const lockout = (error as { lockout?: { locked: boolean; remainingAttempts: number } }).lockout
+        expect(lockout?.locked).toBe(true)
+        expect(lockout?.remainingAttempts).toBe(0)
+      }
+
+      // Correct password still blocked while locked
+      expect(() =>
+        auth.login({ username: 'admin', password: 'password-long-enough' }, client),
+      ).toThrow(/锁定/)
+
+      // Different device fingerprint + IP is not locked
+      const other = auth.login(
+        { username: 'admin', password: 'password-long-enough' },
+        { ip: '198.51.100.2', fingerprint: 'other-device' },
+      )
+      expect(other.token).toBeTruthy()
     } finally {
       control.close()
     }

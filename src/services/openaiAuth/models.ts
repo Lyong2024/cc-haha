@@ -44,7 +44,7 @@ export const OPENAI_REASONING_EFFORTS = [
 export type OpenAIReasoningEffort = (typeof OPENAI_REASONING_EFFORTS)[number]
 
 export const OPENAI_CODEX_REASONING_EFFORT_ENV_KEY =
-  'CC_HAHA_OPENAI_REASONING_EFFORT'
+  'HAHA_OPENAI_REASONING_EFFORT'
 
 const GPT_5_6_REASONING_EFFORTS: OpenAIReasoningEffort[] = [
   'low',

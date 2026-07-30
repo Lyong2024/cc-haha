@@ -32,14 +32,14 @@ check-no-electron: OK
 $ bun test src/server/__tests__/web-control-db.test.ts
 2 pass, 0 fail  (WAL + web/im online users)
 
-$ cd desktop && pnpm run build
-✓ built in ~1s → desktop/dist
+$ cd web && pnpm run build
+✓ built in ~1s → dist/
 ```
 
 ### Phase 1 — 强制登录
 
 ```text
-GET /health → {"status":"ok","service":"cc-haha-web",...}
+GET /health → {"status":"ok","service":"haha-web",...}
 GET /api/auth/status → setupRequired:true, username:null
 GET /api/sessions (no cookie) → 401
 POST /api/auth/setup { username, password, confirmPassword }

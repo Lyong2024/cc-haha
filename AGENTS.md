@@ -2,7 +2,7 @@
 
 This file is the entry point for coding agents. Keep it short: it should route an agent to the right code, tests, and deeper documentation rather than duplicate them.
 
-Rules closer to the code take precedence. Before editing `.github/`, `src/`, `desktop/`, `adapters/`, or `docs/`, read the nested `AGENTS.md` in that directory.
+Rules closer to the code take precedence. Before editing `.github/`, `src/`, `web/`, `adapters/`, or `docs/`, read the nested `AGENTS.md` in that directory.
 
 ## Start Here
 
@@ -16,7 +16,7 @@ Rules closer to the code take precedence. Before editing `.github/`, `src/`, `de
 ## Repository Map
 
 - `src/`: CLI, Ink UI, commands, services, tools, shared runtime utilities, and the local API/WebSocket server.
-- `desktop/`: On **`web` branch**, pure Web SPA (React + Vite); no Electron. On `main`, may still include desktop shell history.
+- `web/`: On **`web` branch**, pure Web SPA (React + Vite); no Electron. On `main`, may still include desktop shell history.
 - `adapters/`: Telegram, Feishu, WeChat, DingTalk, and shared IM adapter utilities (web host can spawn these without Electron).
 - `docs/prds/web/`: Pure-web product design, plan, deploy notes.
 - `site/`: React documentation site and build tooling. `docs/` and `docs/en/` are its Chinese and English Markdown content sources; keep counterparts aligned when both exist.
@@ -25,16 +25,16 @@ Rules closer to the code take precedence. Before editing `.github/`, `src/`, `de
 
 ## Pure-web branch (`web`)
 
-- Default package manager: **pnpm** (`packageManager: pnpm@11.17.0`). Install with `pnpm install` (root + `desktop/`).
+- Default package manager: **pnpm** (`packageManager: pnpm@11.17.0`). Install with `pnpm install` (root + `web/`).
 - Runtime remains **Bun** for `src/server` and `bin/claude-haha-web` (`Bun.serve`, `bun:sqlite`).
-- Start: `pnpm run web:start` (sets `CC_HAHA_WEB_AUTH=1`). Browser uses admin cookie login; no H5 token; no Electron/pet.
+- Start: `pnpm run web:start` (sets `HAHA_WEB_AUTH=1`). Browser uses admin cookie login; no H5 token; no Electron/pet.
 - Details: `docs/prds/web/pure-web-design.md`, `docs/prds/web/deploy.md`.
 
 ## Implementation Rules
 
 - Make narrow, owned diffs. Every changed line must trace to the request, a failing test, or a verified compatibility constraint.
 - Prefer existing utilities, stores, services, and test harnesses. Do not add dependencies or speculative abstractions unless the task requires them.
-- Production changes under `src/`, `desktop/src/`, or `adapters/` require a same-area regression test unless a maintainer explicitly approves an exception.
+- Production changes under `src/`, `web/src/`, or `adapters/` require a same-area regression test unless a maintainer explicitly approves an exception.
 - Keep TypeScript ESM style: 2-space indentation, no semicolons, `PascalCase` components, and `camelCase` functions/hooks/stores.
 - Use structured parsers and existing boundaries instead of ad hoc string manipulation. Add comments only for non-obvious control flow or external constraints.
 - Do not commit generated output such as `artifacts/`, coverage reports, `node_modules/`, build directories, or Rust `target/` trees.
@@ -72,4 +72,4 @@ Additional invariants:
 - Contributor workflow and quality lanes: `CONTRIBUTING.md` and `docs/internals/contributing.md`
 - Package scripts and path routing: `package.json` and `scripts/pr/change-policy.ts`
 - PR evidence contract: `.github/pull_request_template.md`
-- Desktop release and auto-update runbook: `docs/desktop/10-release-auto-update.md`
+- Desktop release and auto-update runbook: `docs/web/10-release-auto-update.md`

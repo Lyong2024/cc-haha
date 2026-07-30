@@ -547,7 +547,7 @@ async function runInputActionGates(
  * click actually goes to the read-tier app.
  *
  * Runs AFTER `scaleCoord` (needs global coords) and BEFORE the executor call.
- * Returns null on pass (target is tier-"click"/"full", or desktop/Finder/us),
+ * Returns null on pass (target is tier-"click"/"full", or web/Finder/us),
  * error-result on block.
  *
  * When `appUnderPoint` returns null (desktop, or platform without hit-test),

@@ -25,7 +25,7 @@ describe('print mode partial output', () => {
           })
         },
       })
-      configDir = await mkdtemp(join(tmpdir(), 'cc-haha-print-partial-'))
+      configDir = await mkdtemp(join(tmpdir(), 'haha-print-partial-'))
 
       try {
         const child = Bun.spawn(
@@ -36,7 +36,7 @@ describe('print mode partial output', () => {
               ...process.env,
               NODE_ENV: 'production',
               CI: '1',
-              CC_HAHA_SKIP_DOTENV: '1',
+              HAHA_SKIP_DOTENV: '1',
               CLAUDE_CONFIG_DIR: configDir,
               CLAUDE_CODE_SKIP_PROMPT_HISTORY: '1',
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1',
@@ -102,7 +102,7 @@ describe('print mode partial output', () => {
           data() {},
         },
       })
-      configDir = await mkdtemp(join(tmpdir(), 'cc-haha-print-transport-'))
+      configDir = await mkdtemp(join(tmpdir(), 'haha-print-transport-'))
 
       try {
         const child = Bun.spawn(
@@ -113,7 +113,7 @@ describe('print mode partial output', () => {
               ...process.env,
               NODE_ENV: 'production',
               CI: '1',
-              CC_HAHA_SKIP_DOTENV: '1',
+              HAHA_SKIP_DOTENV: '1',
               CLAUDE_CONFIG_DIR: configDir,
               CLAUDE_CODE_SKIP_PROMPT_HISTORY: '1',
               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1',

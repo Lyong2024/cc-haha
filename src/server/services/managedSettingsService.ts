@@ -5,6 +5,7 @@ import { randomBytes } from 'node:crypto'
 import { ApiError } from '../middleware/errorHandler.js'
 import { normalizeJsonObject, readRecoverableJsonFile } from './recoverableJsonFile.js'
 import { ensurePersistentStorageUpgraded } from './persistentStorageMigrations.js'
+import { resolveHahaDataDir } from './ccHahaPaths.js'
 
 export class ManagedSettingsService {
   private static writeLocks = new Map<string, Promise<void>>()
@@ -14,7 +15,7 @@ export class ManagedSettingsService {
   }
 
   private getSettingsPath(): string {
-    return path.join(this.getConfigDir(), 'cc-haha', 'settings.json')
+    return path.join(resolveHahaDataDir(), 'settings.json')
   }
 
   private async withWriteLock<T>(
@@ -57,7 +58,7 @@ export class ManagedSettingsService {
     await ensurePersistentStorageUpgraded()
     return readRecoverableJsonFile({
       filePath: this.getSettingsPath(),
-      label: 'cc-haha managed settings',
+      label: 'haha managed settings',
       defaultValue: {},
       normalize: normalizeJsonObject,
     })

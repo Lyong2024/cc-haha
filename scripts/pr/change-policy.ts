@@ -40,7 +40,7 @@ const ALLOW_MISSING_TESTS_LABEL = 'allow-missing-tests'
 const ALLOW_COVERAGE_BASELINE_LABEL = 'allow-coverage-baseline-change'
 
 const areaLabels: Record<ChangeArea, string> = {
-  desktop: 'area:desktop',
+  desktop: 'area:web',
   server: 'area:server',
   adapters: 'area:adapters',
   docs: 'area:docs',
@@ -61,24 +61,24 @@ const cliCorePrefixes = [
 const desktopNativeExactPaths = new Set([
   'bun.lock',
   'package.json',
-  'desktop/bun.lock',
-  'desktop/package.json',
-  'desktop/package-lock.json',
-  'desktop/electron/tsconfig.json',
-  'desktop/scripts/build-macos-arm64.sh',
-  'desktop/scripts/build-windows-x64.ps1',
-  'desktop/scripts/build-linux.sh',
+  'web/bun.lock',
+  'web/package.json',
+  'web/package-lock.json',
+  'web/electron/tsconfig.json',
+  'web/scripts/build-macos-arm64.sh',
+  'web/scripts/build-windows-x64.ps1',
+  'web/scripts/build-linux.sh',
 ])
 
 const desktopWebExactPaths = new Set([
-  'desktop/bun.lock',
-  'desktop/package.json',
-  'desktop/package-lock.json',
-  'desktop/tsconfig.json',
-  'desktop/tsconfig.app.json',
-  'desktop/tsconfig.node.json',
-  'desktop/vite.config.ts',
-  'desktop/vitest.config.ts',
+  'web/bun.lock',
+  'web/package.json',
+  'web/package-lock.json',
+  'web/tsconfig.json',
+  'web/tsconfig.app.json',
+  'web/tsconfig.node.json',
+  'web/vite.config.ts',
+  'web/vitest.config.ts',
 ])
 
 const providerContractPrefixes = [
@@ -106,13 +106,13 @@ const chatContractPrefixes = [
   'src/server/__tests__/websocket-handler',
   'src/server/ws/',
   'src/server/services/conversationService',
-  'desktop/src/api/websocket',
-  'desktop/src/components/chat/ChatInput',
-  'desktop/src/pages/ActiveSession',
-  'desktop/src/pages/EmptySession',
-  'desktop/src/stores/chatStore',
-  'desktop/src/stores/sessionRuntimeStore',
-  'desktop/src/types/chat',
+  'web/src/api/websocket',
+  'web/src/components/chat/ChatInput',
+  'web/src/pages/ActiveSession',
+  'web/src/pages/EmptySession',
+  'web/src/stores/chatStore',
+  'web/src/stores/sessionRuntimeStore',
+  'web/src/types/chat',
 ]
 
 const persistencePrefixes = [
@@ -120,7 +120,7 @@ const persistencePrefixes = [
   'src/server/__tests__/persistence-upgrade',
   'src/server/services/desktopUiPreferencesService',
   'src/server/__tests__/desktop-ui-preferences',
-  'desktop/src/lib/persistenceMigrations',
+  'web/src/lib/persistenceMigrations',
   'scripts/quality-gate/persistence-upgrade',
 ]
 
@@ -160,10 +160,10 @@ const releaseExactPaths = new Set([
   'scripts/pr/check-pr.ts',
   'scripts/pr/run-server-tests.ts',
   'scripts/release.ts',
-  'desktop/electron/tsconfig.json',
-  'desktop/scripts/build-macos-arm64.sh',
-  'desktop/scripts/build-windows-x64.ps1',
-  'desktop/scripts/build-linux.sh',
+  'web/electron/tsconfig.json',
+  'web/scripts/build-macos-arm64.sh',
+  'web/scripts/build-windows-x64.ps1',
+  'web/scripts/build-linux.sh',
 ])
 
 const coveragePolicyExactPaths = new Set([
@@ -194,7 +194,8 @@ function areasForPath(path: string): ChangeArea[] {
     return []
   }
 
-  if (path.startsWith('desktop/')) {
+  // SPA package lives under web/ (historical area id remains "desktop" for labels/CI).
+  if (path.startsWith('web/')) {
     areas.add('desktop')
   }
 
@@ -249,7 +250,7 @@ function changedProductionFiles(files: string[], predicate: (file: string) => bo
 
 function missingTestSignals(files: string[]) {
   const signals: string[] = []
-  const desktopProd = changedProductionFiles(files, (file) => file.startsWith('desktop/src/'))
+  const desktopProd = changedProductionFiles(files, (file) => file.startsWith('web/src/'))
   const serverProd = changedProductionFiles(files, (file) => file.startsWith('src/server/'))
   const adapterProd = changedProductionFiles(files, (file) => file.startsWith('adapters/'))
   const rootRuntimeProd = changedProductionFiles(files, (file) => (
@@ -257,7 +258,7 @@ function missingTestSignals(files: string[]) {
     !file.startsWith('src/server/')
   ))
 
-  if (desktopProd.length > 0 && !hasMatchingTest(files, (file) => file.startsWith('desktop/src/'))) {
+  if (desktopProd.length > 0 && !hasMatchingTest(files, (file) => file.startsWith('web/src/'))) {
     signals.push('Desktop product files changed without a desktop test file in the PR.')
   }
   if (serverProd.length > 0 && !hasMatchingTest(files, (file) => file.startsWith('src/server/'))) {
@@ -311,12 +312,12 @@ export function evaluateChangePolicy(
   const blocked = blockingReasons.length > 0
 
   const touchesDesktopWeb = files.some((file) => (
-    file.startsWith('desktop/src/') || desktopWebExactPaths.has(file)
+    file.startsWith('web/src/') || desktopWebExactPaths.has(file)
   ))
   const touchesDesktopNative = files.some((file) => (
-    file.startsWith('desktop/electron/') ||
-    file.startsWith('desktop/scripts/') ||
-    file.startsWith('desktop/src-tauri/') ||
+    file.startsWith('web/electron/') ||
+    file.startsWith('web/scripts/') ||
+    file.startsWith('web/src-tauri/') ||
     desktopNativeExactPaths.has(file)
   ))
   const touchesProviderContract = files.some((file) => startsWithAny(file, providerContractPrefixes))
@@ -338,14 +339,14 @@ export function evaluateChangePolicy(
   ))
   const touchesCoverage = files.some((file) => (
     (isExecutableSourcePath(file) && (
-      file.startsWith('desktop/src/') ||
+      file.startsWith('web/src/') ||
       file.startsWith('src/') ||
       file.startsWith('adapters/')
     )) ||
     file.startsWith('scripts/quality-gate/coverage') ||
     file === 'package.json' ||
-    file === 'desktop/package.json' ||
-    file === 'desktop/bun.lock'
+    file === 'web/package.json' ||
+    file === 'web/bun.lock'
   ))
 
   const orderedAreas = [...areas].sort()

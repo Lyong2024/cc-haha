@@ -13,9 +13,9 @@ import {
 
 function createRepoRoot() {
   const rootDir = mkdtempSync(join(tmpdir(), 'package-smoke-'))
-  mkdirSync(join(rootDir, 'desktop'), { recursive: true })
+  mkdirSync(join(rootDir, 'web'), { recursive: true })
   writeFileSync(
-    join(rootDir, 'desktop', 'package.json'),
+    join(rootDir, 'web', 'package.json'),
     JSON.stringify({
       name: 'claude-code-desktop',
       version: '0.3.1',
@@ -85,20 +85,20 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/dist/index.html')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.zip')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.zip.blockmap')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.dmg')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.dmg.blockmap')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/latest-mac.yml', [
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/dist/index.html')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.zip')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.zip.blockmap')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.dmg')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.dmg.blockmap')
+    writeFile(rootDir, 'web/build-artifacts/electron/latest-mac.yml', [
       'version: 0.3.1',
       'files:',
       '  - url: Claude-Code-Haha-0.3.1-arm64.zip',
@@ -122,7 +122,7 @@ describe('packaged artifact inspection', () => {
   test('fails macOS inspection when bundled ripgrep is missing', async () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
-    const appRoot = 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app'
+    const appRoot = 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app'
     const sidecarRoot = `${appRoot}/Contents/Resources/app.asar.unpacked/src-tauri/binaries`
 
     writeFile(rootDir, `${appRoot}/Contents/Info.plist`)
@@ -151,14 +151,14 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
 
     const report = await inspectPackagedArtifacts(rootDir, { platform: 'macos', packageKind: 'dir' })
 
@@ -170,16 +170,16 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude Code Haha-0.3.1-arm64-mac.zip')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/latest-mac.yml', 'path: Claude-Code-Haha-0.3.1-arm64-mac.zip\n')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude Code Haha-0.3.1-arm64-mac.zip')
+    writeFile(rootDir, 'web/build-artifacts/electron/latest-mac.yml', 'path: Claude-Code-Haha-0.3.1-arm64-mac.zip\n')
 
     const report = await inspectPackagedArtifacts(rootDir, { platform: 'macos' })
 
@@ -191,15 +191,15 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.zip')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/latest-mac.yml', [
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.zip')
+    writeFile(rootDir, 'web/build-artifacts/electron/latest-mac.yml', [
       'version: 0.3.1',
       'files:',
       '  - url: Claude-Code-Haha-0.3.1-arm64.zip',
@@ -216,16 +216,16 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.zip')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/latest-mac.yml', 'path: Claude-Code-Haha-0.3.1-arm64.zip\n')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-arm64.zip')
+    writeFile(rootDir, 'web/build-artifacts/electron/latest-mac.yml', 'path: Claude-Code-Haha-0.3.1-arm64.zip\n')
 
     const report = await inspectPackagedArtifacts(rootDir, { platform: 'macos', packageKind: 'release' })
 
@@ -237,13 +237,13 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'macos',
@@ -276,13 +276,13 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Info.plist')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/MacOS/Claude Code Haha')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-apple-darwin')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/mac-arm64/Claude Code Haha.app/Contents/Resources/app.asar.unpacked/node_modules/node-pty/prebuilds/darwin-arm64/spawn-helper')
 
     const commands: string[] = []
     const report = await inspectPackagedArtifacts(rootDir, {
@@ -319,14 +319,14 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude Code Haha Setup 0.3.1.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude Code Haha Setup 0.3.1.exe.blockmap')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/latest.yml', 'path: Claude Code Haha Setup 0.3.1.exe\n')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude Code Haha Setup 0.3.1.exe')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude Code Haha Setup 0.3.1.exe.blockmap')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/latest.yml', 'path: Claude Code Haha Setup 0.3.1.exe\n')
 
     const report = await inspectPackagedArtifacts(rootDir, { platform: 'windows' })
 
@@ -339,44 +339,44 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/windows-x64/Claude-Code-Haha-0.3.1-x64.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-x64/Claude-Code-Haha-0.3.1-x64.exe.blockmap')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-x64/win-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-x64/win-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-x64/win-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-x64/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-x64/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-x64/latest.yml', 'path: Claude-Code-Haha-0.3.1-x64.exe\n')
+    writeFile(rootDir, 'web/build-artifacts/windows-x64/Claude-Code-Haha-0.3.1-x64.exe')
+    writeFile(rootDir, 'web/build-artifacts/windows-x64/Claude-Code-Haha-0.3.1-x64.exe.blockmap')
+    writeFile(rootDir, 'web/build-artifacts/windows-x64/win-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/windows-x64/win-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/windows-x64/win-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
+    writeFile(rootDir, 'web/build-artifacts/windows-x64/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/windows-x64/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/windows-x64/latest.yml', 'path: Claude-Code-Haha-0.3.1-x64.exe\n')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'windows',
       arch: 'x64',
       packageKind: 'release',
-      artifactsDir: 'desktop/build-artifacts/windows-x64',
+      artifactsDir: 'web/build-artifacts/windows-x64',
     })
 
     expect(report.passed).toBe(true)
-    expect(report.artifactsDir.endsWith('desktop/build-artifacts/windows-x64')).toBe(true)
+    expect(report.artifactsDir.endsWith('web/build-artifacts/windows-x64')).toBe(true)
   })
 
   test('passes Windows arm64 checks only when arm64 sidecar and node-pty native module are present', async () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/Claude-Code-Haha-0.3.1-arm64.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/Claude-Code-Haha-0.3.1-arm64.exe.blockmap')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-pc-windows-msvc.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/latest.yml', 'path: Claude-Code-Haha-0.3.1-arm64.exe\n')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/Claude-Code-Haha-0.3.1-arm64.exe')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/Claude-Code-Haha-0.3.1-arm64.exe.blockmap')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-pc-windows-msvc.exe')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/latest.yml', 'path: Claude-Code-Haha-0.3.1-arm64.exe\n')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'windows',
       arch: 'arm64',
       packageKind: 'release',
-      artifactsDir: 'desktop/build-artifacts/windows-arm64',
+      artifactsDir: 'web/build-artifacts/windows-arm64',
     })
 
     expect(report.passed).toBe(true)
@@ -388,20 +388,20 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/Claude-Code-Haha-0.3.1-arm64.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/Claude-Code-Haha-0.3.1-arm64.exe.blockmap')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/latest.yml', 'path: Claude-Code-Haha-0.3.1-arm64.exe\n')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/Claude-Code-Haha-0.3.1-arm64.exe')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/Claude-Code-Haha-0.3.1-arm64.exe.blockmap')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/latest.yml', 'path: Claude-Code-Haha-0.3.1-arm64.exe\n')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'windows',
       arch: 'arm64',
       packageKind: 'release',
-      artifactsDir: 'desktop/build-artifacts/windows-arm64',
+      artifactsDir: 'web/build-artifacts/windows-arm64',
     })
 
     expect(report.passed).toBe(false)
@@ -413,11 +413,11 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/Claude Code Haha.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/Claude Code Haha.exe')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
 
     const report = await inspectPackagedArtifacts(rootDir, { platform: 'windows', packageKind: 'dir' })
 
@@ -430,12 +430,12 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/Claude Code Haha.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/Claude Code Haha.exe')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-pc-windows-msvc.exe')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/win-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-x64/pty.node')
 
     const report = await inspectPackagedArtifacts(rootDir, { platform: 'windows', packageKind: 'release' })
 
@@ -447,18 +447,18 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/Claude Code Haha.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-pc-windows-msvc.exe')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/Claude Code Haha.exe')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-pc-windows-msvc.exe')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/windows-arm64/win-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/win32-arm64/pty.node')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'windows',
       arch: 'arm64',
       packageKind: 'release',
-      artifactsDir: 'desktop/build-artifacts/windows-arm64',
+      artifactsDir: 'web/build-artifacts/windows-arm64',
     })
 
     expect(report.passed).toBe(false)
@@ -470,44 +470,44 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/Claude-Code-Haha-0.3.1-x64.AppImage')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/Claude-Code-Haha-0.3.1-x64.AppImage.blockmap')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/claude-code-desktop_0.3.1_amd64.deb')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/linux-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/linux-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/linux-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-unknown-linux-gnu')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/linux-x64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-x64/latest-linux.yml', 'path: Claude-Code-Haha-0.3.1-x64.AppImage\n')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/Claude-Code-Haha-0.3.1-x64.AppImage')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/Claude-Code-Haha-0.3.1-x64.AppImage.blockmap')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/claude-code-desktop_0.3.1_amd64.deb')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/linux-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/linux-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/linux-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-unknown-linux-gnu')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/linux-x64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/linux-x64/latest-linux.yml', 'path: Claude-Code-Haha-0.3.1-x64.AppImage\n')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'linux',
       packageKind: 'release',
-      artifactsDir: 'desktop/build-artifacts/linux-x64',
+      artifactsDir: 'web/build-artifacts/linux-x64',
     })
 
     expect(report.passed).toBe(true)
-    expect(report.artifactsDir.endsWith('desktop/build-artifacts/linux-x64')).toBe(true)
+    expect(report.artifactsDir.endsWith('web/build-artifacts/linux-x64')).toBe(true)
   })
 
   test('accepts Linux architecture-specific update metadata from arm64 builds', async () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/Claude-Code-Haha-0.3.1-arm64.AppImage')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/Claude-Code-Haha-0.3.1-arm64.AppImage.blockmap')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/claude-code-desktop_0.3.1_arm64.deb')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/linux-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/linux-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/linux-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-unknown-linux-gnu')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/linux-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/linux-arm64/latest-linux-arm64.yml', 'path: Claude-Code-Haha-0.3.1-arm64.AppImage\n')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/Claude-Code-Haha-0.3.1-arm64.AppImage')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/Claude-Code-Haha-0.3.1-arm64.AppImage.blockmap')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/claude-code-desktop_0.3.1_arm64.deb')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/linux-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/linux-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/linux-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-unknown-linux-gnu')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/linux-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/linux-arm64/latest-linux-arm64.yml', 'path: Claude-Code-Haha-0.3.1-arm64.AppImage\n')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'linux',
       packageKind: 'release',
-      artifactsDir: 'desktop/build-artifacts/linux-arm64',
+      artifactsDir: 'web/build-artifacts/linux-arm64',
     })
 
     expect(report.passed).toBe(true)
@@ -519,20 +519,20 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-x86_64.AppImage')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-amd64.deb')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-x86_64.rpm')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-unknown-linux-gnu')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/build/Release/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/latest-linux.yml', 'path: Claude-Code-Haha-0.3.1-linux-x86_64.AppImage\n')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-x86_64.AppImage')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-amd64.deb')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-x86_64.rpm')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-unknown-linux-gnu')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/build/Release/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/latest-linux.yml', 'path: Claude-Code-Haha-0.3.1-linux-x86_64.AppImage\n')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'linux',
       packageKind: 'release',
-      artifactsDir: 'desktop/build-artifacts/electron',
+      artifactsDir: 'web/build-artifacts/electron',
     })
 
     expect(report.passed).toBe(true)
@@ -544,20 +544,20 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-arm64.AppImage')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-arm64.deb')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-aarch64.rpm')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-arm64-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-arm64-unpacked/resources/app-update.yml')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-arm64-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-unknown-linux-gnu')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/linux-arm64/pty.node')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/latest-linux-arm64.yml', 'path: Claude-Code-Haha-0.3.1-linux-arm64.AppImage\n')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-arm64.AppImage')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-arm64.deb')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-linux-aarch64.rpm')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-arm64-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-arm64-unpacked/resources/app-update.yml')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-arm64-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-aarch64-unknown-linux-gnu')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-arm64-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/linux-arm64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/latest-linux-arm64.yml', 'path: Claude-Code-Haha-0.3.1-linux-arm64.AppImage\n')
 
     const report = await inspectPackagedArtifacts(rootDir, {
       platform: 'linux',
       packageKind: 'release',
-      artifactsDir: 'desktop/build-artifacts/electron',
+      artifactsDir: 'web/build-artifacts/electron',
     })
 
     expect(report.passed).toBe(true)
@@ -569,10 +569,10 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app.asar')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-unknown-linux-gnu')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/linux-x64/pty.node')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app.asar')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/src-tauri/binaries/claude-sidecar-x86_64-unknown-linux-gnu')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/package.json')
+    writeFile(rootDir, 'web/build-artifacts/electron/linux-unpacked/resources/app.asar.unpacked/node_modules/node-pty/prebuilds/linux-x64/pty.node')
 
     const report = await inspectPackagedArtifacts(rootDir, { platform: 'linux', packageKind: 'dir' })
 
@@ -595,8 +595,8 @@ describe('packaged artifact inspection', () => {
     const rootDir = createRepoRoot()
     tempDirs.push(rootDir)
 
-    writeFile(rootDir, 'desktop/build-artifacts/electron/Claude-Code-Haha-0.3.1-x64.AppImage')
-    writeFile(rootDir, 'desktop/build-artifacts/electron/latest-linux.yml', 'path: Claude-Code-Haha-0.3.1-x64.AppImage\n')
+    writeFile(rootDir, 'web/build-artifacts/electron/Claude-Code-Haha-0.3.1-x64.AppImage')
+    writeFile(rootDir, 'web/build-artifacts/electron/latest-linux.yml', 'path: Claude-Code-Haha-0.3.1-x64.AppImage\n')
 
     const report = await inspectPackagedArtifacts(rootDir, { platform: 'linux', packageKind: 'release' })
 

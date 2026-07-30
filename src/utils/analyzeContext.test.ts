@@ -9,7 +9,7 @@ const originalSimpleMode = process.env.CLAUDE_CODE_SIMPLE
 
 describe('analyzeContextUsage', () => {
   beforeAll(async () => {
-    configDir = await mkdtemp(join(tmpdir(), 'cc-haha-analyze-context-'))
+    configDir = await mkdtemp(join(tmpdir(), 'haha-analyze-context-'))
     process.env.CLAUDE_CONFIG_DIR = configDir
     process.env.CLAUDE_CODE_SIMPLE = '1'
   })

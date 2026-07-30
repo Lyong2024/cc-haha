@@ -13,7 +13,7 @@ const forbidden = new Set(['electron', 'electron-builder', 'electron-updater', '
 
 const targets = [
   join(root, 'package.json'),
-  join(root, 'desktop', 'package.json'),
+  join(root, 'web', 'package.json'),
 ]
 
 let failed = false
@@ -30,9 +30,9 @@ for (const packageJsonPath of targets) {
     const deps = pkg[section] || {}
     for (const name of Object.keys(deps)) {
       if (forbidden.has(name) || name.startsWith('electron-')) {
-        // Root package may still list unrelated tools; only fail desktop/web product package.
-        if (packageJsonPath.endsWith(`${join('desktop', 'package.json')}`) ||
-            packageJsonPath.replace(/\\/g, '/').endsWith('desktop/package.json')) {
+        // Root package may still list unrelated tools; only fail web/web product package.
+        if (packageJsonPath.endsWith(`${join('web', 'package.json')}`) ||
+            packageJsonPath.replace(/\\/g, '/').endsWith('web/package.json')) {
           console.error(`[fail] ${packageJsonPath} ${section} contains forbidden dependency: ${name}`)
           failed = true
         }
@@ -41,7 +41,7 @@ for (const packageJsonPath of targets) {
   }
 
   if (pkg.main && String(pkg.main).includes('electron')) {
-    if (packageJsonPath.replace(/\\/g, '/').includes('/desktop/')) {
+    if (packageJsonPath.replace(/\\/g, '/').includes('/web/')) {
       console.error(`[fail] ${packageJsonPath} main points at electron: ${pkg.main}`)
       failed = true
     }
@@ -50,8 +50,8 @@ for (const packageJsonPath of targets) {
 
 // Electron source tree must not exist on web branch product path.
 const electronPaths = [
-  join(root, 'desktop', 'electron'),
-  join(root, 'desktop', 'src-tauri'),
+  join(root, 'web', 'electron'),
+  join(root, 'web', 'src-tauri'),
 ]
 for (const p of electronPaths) {
   if (existsSync(p)) {

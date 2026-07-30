@@ -46,6 +46,8 @@ export type SessionListSummary = {
   runtimeProviderId?: string | null
   runtimeModelId?: string
   effortLevel?: string
+  /** Multi-Agent CLI binding; default/legacy sessions = claude-code */
+  agentCliId?: string
   repository?: PersistedRepositorySession
   worktreeSession?: PersistedWorktreeSession | null
 }

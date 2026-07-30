@@ -54,6 +54,18 @@ describe('provider presets API', () => {
     expect(PROVIDER_PRESETS.some((preset) => preset.id === 'custom')).toBe(true)
   })
 
+  test('Claude and OpenAI API presets appear before DeepSeek', () => {
+    const ids = PROVIDER_PRESETS.map((preset) => preset.id)
+    const claude = ids.indexOf('claude')
+    const openai = ids.indexOf('openai')
+    const deepseek = ids.indexOf('deepseek')
+    expect(claude).toBeGreaterThan(-1)
+    expect(openai).toBeGreaterThan(-1)
+    expect(deepseek).toBeGreaterThan(-1)
+    expect(claude).toBeLessThan(openai)
+    expect(openai).toBeLessThan(deepseek)
+  })
+
   test('local Anthropic-compatible presets appear immediately before custom', () => {
     expect(PROVIDER_PRESETS.at(-3)?.id).toBe('lmstudio')
     expect(PROVIDER_PRESETS.at(-2)?.id).toBe('ollama')
@@ -83,7 +95,7 @@ describe('provider presets API', () => {
     expect(deepseek?.defaultModels.haiku).toBe('deepseek-v4-flash')
     expect(deepseek?.defaultModels.sonnet).toBe('deepseek-v4-pro[1m]')
     expect(deepseek?.defaultModels.opus).toBe('deepseek-v4-pro[1m]')
-    expect(deepseek?.defaultEnv?.CC_HAHA_SEND_DISABLED_THINKING).toBeUndefined()
+    expect(deepseek?.defaultEnv?.HAHA_SEND_DISABLED_THINKING).toBeUndefined()
     expect(deepseek?.defaultEnv?.ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES).toBe(
       'thinking,effort,adaptive_thinking,max_effort',
     )
@@ -96,7 +108,7 @@ describe('provider presets API', () => {
     expect(kimi?.baseUrl).toBe('https://api.kimi.com/coding/')
     expect(kimi?.authStrategy).toBe('api_key')
     expect(kimi?.defaultModels.main).toBe('k3')
-    expect(kimi?.defaultEnv?.CC_HAHA_SEND_DISABLED_THINKING).toBeUndefined()
+    expect(kimi?.defaultEnv?.HAHA_SEND_DISABLED_THINKING).toBeUndefined()
     expect(kimi?.defaultEnv?.ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES).toBe(
       'thinking,required_thinking,effort,max_effort',
     )
@@ -147,8 +159,8 @@ describe('provider presets API', () => {
     expect(deepseek?.modelContextWindows?.['deepseek-v4-pro']).toBe(1000000)
     expect(deepseek?.modelContextWindows?.['deepseek-v4-flash']).toBe(1000000)
     expect(zhipu?.apiKeyUrl).toBe('https://www.bigmodel.cn/invite?icode=d41B2qi8Z5xNwTGLNPPF3OZLO2QH3C0EBTSr%2BArzMw4%3D')
-    expect(zhipu?.promoText).toContain('cc-haha')
-    expect(zhipu?.defaultEnv?.CC_HAHA_SEND_DISABLED_THINKING).toBeUndefined()
+    expect(zhipu?.promoText).toContain('haha')
+    expect(zhipu?.defaultEnv?.HAHA_SEND_DISABLED_THINKING).toBeUndefined()
     expect(zhipu?.modelContextWindows?.['glm-5.2']).toBe(1000000)
     expect(zhipu?.modelContextWindows?.['glm-5.1']).toBe(200000)
     expect(zhipu?.modelContextWindows?.['glm-4.7']).toBe(200000)
@@ -168,7 +180,7 @@ describe('provider presets API', () => {
     })
     expect(shengsuanyun?.modelContextWindows?.['anthropic/claude-opus-4.7']).toBe(1000000)
     expect(teamorouter?.apiKeyUrl).toBe(
-      'https://teamorouter.com/?utm_source=cc_haha&utm_medium=referral&utm_campaign=ai_directory',
+      'https://teamorouter.com/?utm_source=haha&utm_medium=referral&utm_campaign=ai_directory',
     )
     expect(teamorouter?.promoText).toContain('10% 折扣')
     expect(teamorouter?.featured).toBe(true)
@@ -182,16 +194,16 @@ describe('provider presets API', () => {
     expect(custom?.defaultEnv).toBeUndefined()
   })
 
-  test('GET and PUT /api/providers/settings read and write cc-haha settings.json', async () => {
+  test('GET and PUT /api/providers/settings read and write haha settings.json', async () => {
     const initial = {
       env: {
         ANTHROPIC_MODEL: 'glm-5.1',
       },
       model: 'glm-5.1',
     }
-    await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
+    await fs.mkdir(path.join(tmpDir, 'haha'), { recursive: true })
     await fs.writeFile(
-      path.join(tmpDir, 'cc-haha', 'settings.json'),
+      path.join(tmpDir, 'haha', 'settings.json'),
       JSON.stringify(initial, null, 2),
       'utf-8',
     )
@@ -211,7 +223,7 @@ describe('provider presets API', () => {
     const putRes = await handleProvidersApi(putReq.req, putReq.url, putReq.segments)
     expect(putRes.status).toBe(200)
 
-    const updatedRaw = await fs.readFile(path.join(tmpDir, 'cc-haha', 'settings.json'), 'utf-8')
+    const updatedRaw = await fs.readFile(path.join(tmpDir, 'haha', 'settings.json'), 'utf-8')
     expect(JSON.parse(updatedRaw)).toEqual(updateBody)
   })
 

@@ -5,7 +5,7 @@
  * viewer (they're on Claude's machine). We upload to /api/oauth/file_upload —
  * the same store MessageComposer/SpaceMessage render from — and stash the
  * returned file_uuid alongside the path. Web resolves file_uuid → preview;
- * desktop/local try path first.
+ * web/local try path first.
  *
  * Best-effort: any failure (no token, bridge off, network error, 4xx) logs
  * debug and returns undefined. The attachment still carries {path, size,

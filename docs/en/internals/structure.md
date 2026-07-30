@@ -36,7 +36,7 @@ The repository contains the CLI/TUI, local Server, Electron desktop app, IM adap
 │       ├── proxy/                  # Provider protocol conversion
 │       ├── middleware/             # Auth and CORS
 │       └── config/                 # Provider presets
-├── desktop/
+├── web/
 │   ├── src/                        # React Renderer
 │   │   ├── api/                    # Server API and WebSocket clients
 │   │   ├── components/             # Chat, Workspace, Browser, and layout
@@ -80,9 +80,9 @@ The repository contains the CLI/TUI, local Server, Electron desktop app, IM adap
 |---|---|---|
 | `src/entrypoints/cli.tsx` | Bun | CLI/TUI and Agent tools |
 | `src/server/index.ts` | Bun / `Bun.serve` | Local HTTP, WebSocket, and H5 |
-| `desktop/electron/main.ts` | Electron main | Native desktop Host |
-| `desktop/src/` | Chromium Renderer | React desktop UI |
-| `desktop/sidecars/claude-sidecar.ts` | Bun-compiled Sidecar | Packaged Server, CLI, and Adapter entry |
+| `web/electron/main.ts` | Electron main | Native desktop Host |
+| `web/src/` | Chromium Renderer | React desktop UI |
+| `web/sidecars/claude-sidecar.ts` | Bun-compiled Sidecar | Packaged Server, CLI, and Adapter entry |
 | `adapters/<platform>/` | Bun Sidecar | Platform messaging integration |
 
-Place new code at the boundary that owns the responsibility: native desktop capabilities belong in `desktop/electron/`, shared business APIs in `src/server/`, and platform-specific messaging behavior in `adapters/<platform>/`. The Renderer should not bypass these boundaries.
+Place new code at the boundary that owns the responsibility: native desktop capabilities belong in `web/electron/`, shared business APIs in `src/server/`, and platform-specific messaging behavior in `adapters/<platform>/`. The Renderer should not bypass these boundaries.

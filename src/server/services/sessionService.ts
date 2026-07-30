@@ -88,6 +88,8 @@ export type SessionListItem = {
   runtimeProviderId?: string | null
   runtimeModelId?: string
   effortLevel?: string
+  /** Multi-Agent CLI binding; missing/legacy sessions treat as claude-code */
+  agentCliId?: string
 }
 
 export type SessionWorkspaceState = 'available' | 'worktree_removed' | 'missing'
@@ -375,7 +377,7 @@ const USER_INTERRUPTION_TEXTS = new Set([
 const NO_RESPONSE_REQUESTED_TEXT = 'No response requested.'
 const TASK_NOTIFICATION_RE = /^<task-notification>\s*[\s\S]*<\/task-notification>$/i
 const TASK_NOTIFICATION_BLOCK_RE = /<task-notification>\s*[\s\S]*?<\/task-notification>/i
-const PERSISTED_TASK_NOTIFICATION_ENTRY_TYPE = 'cc-haha-task-notification'
+const PERSISTED_TASK_NOTIFICATION_ENTRY_TYPE = 'haha-task-notification'
 const PROVIDER_MODEL_ALIAS_SEPARATORS = ['-', '_', ':', '/', '.', ' ']
 
 function normalizeProviderModelAlias(model: string): string {
@@ -508,12 +510,14 @@ export class SessionService {
     project?: string
     limit?: number
     offset?: number
+    agentCliId?: string
   } | undefined, scope = this.getConfigDir()): string {
     return JSON.stringify({
       scope,
       project: options?.project ?? null,
       limit: options?.limit ?? 50,
       offset: options?.offset ?? 0,
+      agentCliId: options?.agentCliId ?? null,
     })
   }
 
@@ -2923,11 +2927,17 @@ export class SessionService {
     project?: string
     limit?: number
     offset?: number
+    /** When set, only return sessions bound to this Agent CLI (legacy = claude-code). */
+    agentCliId?: string
   }): Promise<{ sessions: SessionListItem[]; total: number }> {
     this.syncSharedMutationEpoch()
     const routingMutationEpoch = getSharedSessionMutationState(this.localIndexGateway).epoch
     const hasInvalidPagination = [options?.limit, options?.offset]
       .some(value => value !== undefined && (!Number.isSafeInteger(value) || value < 0))
+    // agentCliId filter needs summary.agentCliId from file scan; skip index path.
+    if (options?.agentCliId) {
+      return this.listSessionsFromFiles(options)
+    }
     if (hasInvalidPagination) return this.listSessionsFromFiles(options)
 
     const indexMode = this.getUsableIndexMode()
@@ -2971,6 +2981,7 @@ export class SessionService {
     project?: string
     limit?: number
     offset?: number
+    agentCliId?: string
   }): Promise<{ sessions: SessionListItem[]; total: number }> {
     this.syncSharedMutationEpoch()
     const scope = this.getConfigDir()
@@ -3178,6 +3189,7 @@ export class SessionService {
       project?: string
       limit?: number
       offset?: number
+      agentCliId?: string
     } | undefined,
     cacheKey: string,
     cacheGeneration: number,
@@ -3225,7 +3237,15 @@ export class SessionService {
       }
     }
 
-    summarizedFiles.sort((a, b) => {
+    const wantedCli = options?.agentCliId?.trim() || null
+    const filteredSummarized = wantedCli
+      ? summarizedFiles.filter((item) => {
+          const bound = item.summary.agentCliId?.trim() || 'claude-code'
+          return bound === wantedCli
+        })
+      : summarizedFiles
+
+    filteredSummarized.sort((a, b) => {
       const modifiedAtDifference =
         Date.parse(b.summary.modifiedAt) - Date.parse(a.summary.modifiedAt)
       if (modifiedAtDifference !== 0) return modifiedAtDifference
@@ -3233,10 +3253,10 @@ export class SessionService {
       return sessionIdDifference || a.filePath.localeCompare(b.filePath)
     })
 
-    const total = summarizedFiles.length
+    const total = filteredSummarized.length
     const offset = options?.offset ?? 0
     const limit = options?.limit ?? 50
-    const paginatedFiles = summarizedFiles.slice(offset, offset + limit)
+    const paginatedFiles = filteredSummarized.slice(offset, offset + limit)
 
     // Build session list items with metadata from file stats & a streaming
     // transcript summary. Keep this sequential so large JSONL files are not
@@ -3272,6 +3292,7 @@ export class SessionService {
           workDirExists,
           workspaceState,
           permissionMode: summary.permissionMode,
+          agentCliId: summary.agentCliId?.trim() || 'claude-code',
           ...(summary.runtimeProviderId !== undefined
             ? { runtimeProviderId: summary.runtimeProviderId }
             : {}),
@@ -3459,10 +3480,18 @@ export class SessionService {
     workDir?: string,
     repositoryOptions?: CreateSessionRepositoryOptions,
     permissionMode?: string,
+    agentCliId?: string,
   ): Promise<{ sessionId: string; workDir: string }> {
-    // Default to user home directory when no workDir specified
-    const resolvedWorkDir = workDir || os.homedir()
+    // Prefer explicit workDir → pure-web default → process cwd → home.
+    // Homedir-only defaults made pure-web prewarm spawn under the user profile
+    // even when the server is running from the project tree.
+    const resolvedWorkDir =
+      workDir?.trim()
+      || process.env.HAHA_DEFAULT_WORK_DIR?.trim()
+      || process.cwd()
+      || os.homedir()
     const sessionId = crypto.randomUUID()
+    const boundCliId = (agentCliId?.trim() || 'claude-code')
 
     // Resolve to absolute path. NOTE: path.resolve() uses process.cwd() to
     // expand relative paths — in bundled sidecar mode the server's cwd is
@@ -3478,7 +3507,7 @@ export class SessionService {
     console.log(
       `[SessionService] createSession: requested workDir=${JSON.stringify(
         workDir,
-      )}, resolved=${absWorkDir}, repository=${JSON.stringify(
+      )}, resolved=${absWorkDir}, agentCliId=${boundCliId}, repository=${JSON.stringify(
         preparedWorkspace.repository ?? null,
       )} (process.cwd()=${process.cwd()})`,
     )
@@ -3509,6 +3538,7 @@ export class SessionService {
       type: 'session-meta',
       isMeta: true,
       workDir: absWorkDir,
+      agentCliId: boundCliId,
       repository: preparedWorkspace.repository,
       ...(permissionMode && VALID_SESSION_PERMISSION_MODES.has(permissionMode)
         ? { permissionMode }

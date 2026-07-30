@@ -7,7 +7,7 @@ order: 12
 
 # Computer Use 架构
 
-从模型发出一次点击，到鼠标真的动起来，中间隔着工具定义、授权检查、Python Bridge 和平台 Helper 四道关。这一篇拆开讲这四道关各自把住什么。开启步骤和日常用法见 [Computer Use 使用指南](../desktop/computer-use.md)。
+从模型发出一次点击，到鼠标真的动起来，中间隔着工具定义、授权检查、Python Bridge 和平台 Helper 四道关。这一篇拆开讲这四道关各自把住什么。开启步骤和日常用法见 [Computer Use 使用指南](../web/computer-use.md)。
 
 ## 分层结构
 
@@ -218,7 +218,7 @@ Helper 每次调用是一个有边界的子进程请求。它不会直接读取�
 | `src/utils/computerUse/pythonBridge.ts` | venv、依赖和子进程协议 |
 | `src/utils/computerUse/wrapper.tsx` | CLI 权限交互和会话上下文 |
 | `src/server/api/computer-use.ts` | 桌面设置 API |
-| `desktop/src/pages/ComputerUseSettings.tsx` | 桌面设置界面 |
+| `web/src/pages/ComputerUseSettings.tsx` | 桌面设置界面 |
 
 ## 修改时的验证重点
 

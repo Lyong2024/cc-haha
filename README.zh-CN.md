@@ -1,4 +1,4 @@
-# Claude Code Haha
+# Claude Code Haha（`web` 分支 · 纯 Web 自托管）
 
 <p align="center">
   <picture>
@@ -9,248 +9,159 @@
 
 <div align="center">
 
-[![GitHub Stars](https://img.shields.io/github/stars/NanmiCoder/cc-haha?style=social)](https://github.com/NanmiCoder/cc-haha/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/NanmiCoder/cc-haha?style=social)](https://github.com/NanmiCoder/cc-haha/network/members)
-[![GitHub Issues](https://img.shields.io/github/issues/NanmiCoder/cc-haha)](https://github.com/NanmiCoder/cc-haha/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/NanmiCoder/cc-haha)](https://github.com/NanmiCoder/cc-haha/pulls)
-[![License](https://img.shields.io/badge/License-MIT-blue)](https://github.com/NanmiCoder/cc-haha/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![中文](https://img.shields.io/badge/🇨🇳_简体中文-当前-blue)](README.zh-CN.md)
 [![English](https://img.shields.io/badge/🇺🇸_English-Available-green)](README.md)
-[![Docs](https://img.shields.io/badge/📖_文档站点-Visit-FF7A00)](https://cchaha.ai)
 
 [English](README.md) · **简体中文**
 
 </div>
 
-Claude Code Haha 是一个 **Claude Code 工作台**：会话、多项目、分支 / Worktree、工作区改动与 Diff 审阅、权限审批、模型配置、IM 接入和定时任务。
+本仓库 **`web` 分支** 是 **纯 Web 自托管工作台**：浏览器 SPA + Bun Server + 单管理员登录。会话、模型服务商、Skills/MCP、IM 适配器、定时任务、Agent CLI 工具与系统管理均可在 **无 Electron** 环境下使用。
 
-| 分支 | 产品形态 |
-|------|----------|
-| **`web`（当前分支）** | **纯 Web 自托管**：浏览器 SPA + Bun Server + 管理员登录。无 Electron、无桌面宠物、无 H5 Token。 |
-| `main` | 桌面安装包 + 共享 Server/CLI 历史 |
+| 能力 | `web` 分支 |
+|------|------------|
+| 浏览器 SPA + Bun API / WebSocket | **支持** |
+| 管理员初始化（账号 + 密码）+ Cookie 会话 | **支持** |
+| 打开宿主机默认终端（服务进程用户权限） | **支持** |
+| 多 Agent CLI（Claude / Codex / Gemini / Grok / …） | **支持** |
+| Grok 官方多账号池 + 额度同步 | **支持** |
+| 从 Claude Code / 桌面 `cc-haha` 导入服务商（用户勾选） | **支持** |
+| Electron / Tauri 壳 | **已移除** |
+| 桌面宠物 | **已移除** |
+| H5 远程 Token | **已移除** |
+| 浏览器内嵌 PTY 终端 | **不可用**（改为打开系统终端） |
 
-<p align="center">
-  <a href="#纯-web-自托管web-分支">纯 Web</a> · <a href="#桌面端预览">桌面端预览</a> · <a href="#安装桌面端">安装桌面端</a> · <a href="#桌面端亮点">桌面端亮点</a> · <a href="#更多文档">更多文档</a>
-</p>
-
----
-
-## 桌面端预览
-
-Claude Code Haha 的桌面端把会话、多项目、分支 / Worktree、代码改动、Diff 评审、权限确认、模型配置和远程入口收进一个图形化工作台，适合不想长期停留在终端里的日常开发。
-
-v0.5.0 做了一次全量 UI 重设计（「纸·墨·印」），六套配色可跟随系统深浅色切换。下面六张都拍自 v0.5.0 真机。
-
-<p align="center">
-  <a href="https://github.com/NanmiCoder/cc-haha/releases"><img src="https://img.shields.io/badge/⬇_下载桌面端-macOS_%7C_Windows_%7C_Linux-FF7A00?style=for-the-badge" alt="下载桌面端"></a>
-  &nbsp;
-  <a href="docs/start/install.md"><img src="https://img.shields.io/badge/📖_安装指南-Guide-gray?style=for-the-badge" alt="安装指南"></a>
-</p>
-
-<table>
-  <tr>
-    <td align="center" width="33%"><img src="docs/images/app/session-main.webp" alt="桌面端会话主界面"><br><b>说一句话，看它做完</b><br><sub>工具调用和每处改动都留在对话里</sub></td>
-    <td align="center" width="33%"><img src="docs/images/app/workspace-diff.webp" alt="工作区 Diff 评审"><br><b>改了什么，逐个文件看</b><br><sub>带语法高亮的 Diff，你点头才落地</sub></td>
-    <td align="center" width="33%"><img src="docs/images/app/workspace-preview.webp" alt="内置浏览器预览刚改完的页面"><br><b>改完当场验证</b><br><sub>内置浏览器打开本地服务看效果</sub></td>
-  </tr>
-  <tr>
-    <td align="center" width="33%"><img src="docs/images/app/session-dark.webp" alt="墨夜主题下的会话界面"><br><b>六套配色可跟随系统</b><br><sub>纯白 · 纸墨 · 经典暖色 · 青瓷 · 墨夜 · 墨夜蓝</sub></td>
-    <td align="center" width="33%"><img src="docs/images/app/skill-market.webp" alt="技能市场"><br><b>缺什么手艺装什么</b><br><sub>来源和安全状态摆在明处</sub></td>
-    <td align="center" width="33%"><img src="docs/images/app/pet-desktop.webp" alt="桌面宠物设置与悬浮宠物"><br><b>桌面上有个伴</b><br><sub>搭搭、弧弧、补补、回回随任务换动作</sub></td>
-  </tr>
-</table>
+> 需要桌面安装包产品线请使用 **`main` 分支** / [Releases](https://github.com/NanmiCoder/__KEEP_HAHA__/releases)。
 
 ---
 
-## 安装桌面端
+## 快速开始
 
-1. 前往 [Releases](https://github.com/NanmiCoder/cc-haha/releases) 下载 macOS / Windows / Linux 桌面端安装包。
-2. 首次启动后，在桌面端设置里配置模型提供商、API Key 和默认模型。
-3. 正式 macOS Release 需要经过签名和公证；如果安装的是 draft/unsigned 临时包，首次打开可能仍需手动放行。Windows 未签名安装包可能出现 SmartScreen 提示，点「更多信息」→「仍要运行」即可。详见 [桌面端安装指南](docs/start/install.md)。
-
-## 从源码启动 CLI
-
-适合想调试底层 CLI、服务端或自行开发的用户：
-
-```bash
-pnpm install
-cp .env.example .env
-./bin/claude-haha
-```
-
-更多配置见 [环境变量](docs/cli/env.md) 和 [命令行安装与启动](docs/cli/index.md)。
-
-## 纯 Web 自托管（`web` 分支）
-
-浏览器完整工作台：**SPA（`desktop/`）+ Bun Server（`src/server`）+ `claude-haha-web` CLI**。
-
-| | |
-|--|--|
-| 包管理 | **pnpm@11.17.0**（`packageManager` 字段） |
-| 运行时 | **Bun**（`Bun.serve`、`bun:sqlite`） |
-| 鉴权 | 唯一管理员——首次启动设置**账号 + 密码**；后续 Cookie 会话登录 |
-| 不含 | Electron、Tauri、桌面宠物、H5 远程 Token |
+**环境：** Node（pnpm）、[Bun](https://bun.sh) 1.3+，Windows / macOS / Linux。
 
 ```bash
 git checkout web
 corepack enable && corepack prepare pnpm@11.17.0 --activate
 pnpm install
-cd desktop && pnpm install && pnpm run build && cd ..
-pnpm run web:start
-# 浏览器打开 http://127.0.0.1:3456
-# 首次访问 → 系统初始化（账号 + 密码 + 确认密码）→ 进入工作台
+cd web && pnpm install && cd ..
+pnpm run web:build          # 构建 SPA → dist/
+pnpm run dev                # http://127.0.0.1:3456
 ```
 
-常用命令：
+1. 打开 **http://127.0.0.1:3456**
+2. **首次访问**：系统初始化 — 管理员 **账号 + 密码 + 确认密码**
+3. 在 **设置 → 服务商** 中配置模型
+4. 新建或打开会话（历史与 CLI 共用 `~/.claude/projects/...` 下 JSONL）
+
+### 常用命令
+
+| 命令 | 说明 |
+|------|------|
+| `pnpm run dev` / `web:start` | 启动纯 Web 服务 |
+| `pnpm run web:build` | 仅构建 SPA |
+| `pnpm run web:dev` | 先构建 SPA 再启动 |
+| `pnpm run web:status` | 查看服务状态 |
+| `pnpm run check:no-electron` | 校验无 Electron 产品依赖 |
+| `docker compose -f docker-compose.web.yml up --build -d` | 可选容器部署 |
+
+CLI：
 
 ```bash
-pnpm run web:status
 bun run ./bin/claude-haha-web.ts start --host 0.0.0.0 --port 3456
-docker compose -f docker-compose.web.yml up --build -d   # 可选
-node scripts/check-no-electron.mjs                       # 校验无 electron 依赖
+# 可选: --data-dir PATH
 ```
 
-设计与部署：[docs/prds/web/deploy.md](docs/prds/web/deploy.md) · [纯 Web 设计](docs/prds/web/pure-web-design.md) · [任务清单](docs/prds/web/task-checklist.md)。
+设计与部署：[docs/prds/web/deploy.md](docs/prds/web/deploy.md) · [纯 Web 设计](docs/prds/web/pure-web-design.md)
 
 ---
 
-## 桌面端亮点
+## 功能概览
 
-- **多会话工作台**：标签页、项目切换、终端入口和会话历史集中管理，侧边栏宽度可拖拽。
-- **分支 / Worktree 启动**：新会话可以选择仓库分支，并决定用当前工作树还是隔离 Worktree。
-- **改动逐个文件审阅**：右侧工作区列出本轮改动，点开就是带语法高亮的 Diff，整轮可撤销。
-- **五档权限模式**：从「询问权限」到「跳过权限」，危险命令、工具调用和 AI 反问都在桌面端审批。
-- **模型自选**：Claude / ChatGPT / Grok 官方账号可直接登录；DeepSeek、Kimi、智谱 GLM 等第三方 API 有现成预设；LM Studio、Ollama 的本地模型也接得上。
-- **六套配色主题**：纯白、纸墨、经典暖色、青瓷、墨夜、墨夜蓝，可跟随系统深浅色自动切换。
-- **技能市场**：发现、预览、安装 ClawHub / SkillHub 的第三方技能，来源和安全状态摆在明处。
-- **会话活动面板**：集中查看任务进度、后台任务、SubAgent 与来源。
-- **Computer Use**：让 Agent 在授权后截图、点击、输入并控制桌面应用。
-- **桌面宠物**：搭搭、弧弧、补补、回回随任务状态换动作，也能自己做一只（默认关闭）。
-- **H5 远程访问**：扫码用手机浏览器接入当前会话，锁屏切后台都不打断正在跑的任务。
-- **IM 接入**：通过 Telegram / 飞书 / 微信 / 钉钉 / WhatsApp 远程对话、切换项目和审批权限。
-- **定时任务与用量统计**：创建计划任务在独立会话执行，并查看本机 Token 使用趋势。
+- **工作台**：多会话、项目、工作区/Diff、权限审批、主题
+- **模型服务商**：Claude / ChatGPT / Grok 官方 OAuth，第三方 Anthropic/OpenAI 兼容 API，本地网关
+- **外部服务商导入（用户选择）**：可发现 Claude Code（`~/.claude/settings.json`）与桌面端 **`cc-haha`**（`~/.claude/cc-haha/providers.json`）；**由你勾选导入**。不会静默合并，也不会自动切换当前写入目录。重名时附加来源后缀（如 `DeepSeek (cc-haha)`）
+- **Grok 官方账号池**：多账号列表、sticky「默认账号」、健康账号轮询、额度同步（**周限** `format=credits` + **月限** 包月额度）、凭据刷新、auth.json 风格导出
+- **Agent CLI 管理**：切换当前 CLI 品牌（Claude Code、Codex、Gemini、Grok 等）、设为默认、打开宿主机 Shell
+- **Agents / Skills / MCP / 插件**
+- **IM 适配器**：Telegram / 飞书 / 微信 / 钉钉 / WhatsApp（由 Server 拉起，无需 Electron）
+- **系统管理**：在线用户（Web + IM，只读）、IM 进程启停、退出登录
+- **安全**：强制管理员登录；登录失败 10 次锁定 1 小时（浏览器指纹 + IP）；密码可见切换
+- **宿主机终端 / Host Shell**：打开 **系统默认终端**，权限与 **Web Server 进程用户** 一致，工作目录优先当前会话项目路径
+
+---
+
+## 数据目录（重要）
+
+服务商与纯 Web 控制面状态位于 **产品数据目录下的文件 / SQLite**，不是“仓库内某个数据库”。
+
+| 路径 | 作用 |
+|------|------|
+| `HAHA_DATA_DIR`（或 `--data-dir`） | **当前进程的写入根目录**。纯 Web 默认：`~/.claude/haha-web` |
+| `~/.claude/haha` / `~/.claude/cc-haha` | 品牌产品目录（桌面端常用 **`cc-haha`**） |
+| `~/.claude/settings.json` | **Claude Code** 用户设置（`env` 中的 API Key / Base URL / 模型） |
+| `~/.claude/projects/...` | 与 CLI 共享的会话 transcript（JSONL） |
+
+**隔离规则：**
+
+1. 运行中的实例只 **写入** 自己的活动数据目录（`HAHA_DATA_DIR` / 默认 `haha-web`）。
+2. Claude Code 与桌面 `cc-haha` 仅用于 **发现**；导入在 **设置 → 服务商 → 外部设置来源** 中 **手动勾选**。
+3. 同一系统用户下，`~/.claude/projects` 会话历史可与 CLI/桌面端共用。
+
+需要完全隔离时：
+
+```bash
+export HAHA_DATA_DIR="$HOME/.claude/haha-web-dev"
+pnpm run dev
+```
+
+---
+
+## 架构简述
+
+```text
+浏览器 SPA (web/ → dist/)
+        | Cookie 会话（管理员）
+        v
+Bun Server (src/server)
+  |-- providers.json + settings（活动 HAHA_DATA_DIR）
+  |-- 可选：从 Claude Code / cc-haha 导入（用户勾选）
+  |-- Grok 账号池（仅 Grok 官方）
+  |-- 会话 JSONL (~/.claude/projects)
+  |-- web-control SQLite（管理员 / 在线）
+  |-- 每会话 CLI / Agent CLI 子进程
+  |-- 打开宿主机默认终端 / Host Shell
+```
 
 ---
 
 ## 更多文档
 
-完整文档站：<https://cchaha.ai>
-
-| 分区 | 文档 |
+| 主题 | 文档 |
 |------|------|
-| **开始使用** | [这是什么](docs/start/index.md) · [下载与安装](docs/start/install.md) · [连接模型服务](docs/start/models.md) · [跑通第一条会话](docs/start/first-session.md) · [故障排查](docs/start/troubleshooting.md) |
-| **桌面端功能** | [功能总览](docs/desktop/index.md) · [Computer Use](docs/desktop/computer-use.md) · [桌面宠物](docs/desktop/pets.md) · [手机 H5 与 IM 接力](docs/desktop/remote.md) |
-| **IM 接入** | [总览与配对流程](docs/im/index.md) · [飞书](docs/im/feishu.md) · [Telegram](docs/im/telegram.md) · [微信](docs/im/wechat.md) · [钉钉](docs/im/dingtalk.md) · [WhatsApp](docs/im/whatsapp.md) |
-| **命令行** | [安装与启动](docs/cli/index.md) · [命令参考](docs/cli/reference.md) · [环境变量](docs/cli/env.md) |
-| **深入原理** | [桌面端架构](docs/internals/desktop.md) · [多 Agent 系统](docs/internals/agent.md) · [Skills 系统](docs/internals/skills.md) · [记忆系统](docs/internals/memory.md) · [Computer Use 架构](docs/internals/computer-use.md) · [本地 Server 与 API](docs/internals/server.md) · [Channel 系统](docs/internals/channel.md) · [项目结构](docs/internals/structure.md) · [参与贡献与质量门禁](docs/internals/contributing.md) |
+| 部署 / Docker / 环境变量 | [docs/prds/web/deploy.md](docs/prds/web/deploy.md) |
+| 产品设计 | [docs/prds/web/pure-web-design.md](docs/prds/web/pure-web-design.md) |
+| CLI 环境变量 | [docs/cli/env.md](docs/cli/env.md) |
+| IM | [docs/im/index.md](docs/im/index.md) |
+| Server 内部 | [docs/internals/server.md](docs/internals/server.md) |
+| 贡献与质量门 | [docs/internals/contributing.md](docs/internals/contributing.md) |
+
+文档站（部分内容仍面向桌面 `main`）：<https://Haha.ai>
 
 ---
 
-## 赞助与合作
+## 技术栈（`web`）
 
-本项目由个人利用业余时间维护，欢迎企业或个人赞助支持持续开发，也可洽谈定制、集成或商务合作。
-
-<table>
-  <thead>
-    <tr>
-      <th width="220">赞助商</th>
-      <th align="left">介绍</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://www.shengsuanyun.com/?from=CH_LEJ88KWR">
-          <img src="docs/images/sponsors/shengsuanyun-logo.svg" width="180" alt="胜算云">
-        </a>
-      </td>
-      <td valign="middle">
-        感谢 <a href="https://www.shengsuanyun.com/?from=CH_LEJ88KWR">胜算云</a> 赞助本项目！胜算云是面向 AI Native Teams 的工业级 AI 任务并行执行平台，聚合 Claude、ChatGPT、Gemini 等海内外 LLM 及图片、视频多媒体模型算力；官方直连、非逆向，平台 SLA 可用性达 99.7%，可查看 <a href="https://watch.shengsuanyun.com/status/shengsuanyun">服务状态</a>。平台支持企业专属网关、成本与权限管控、智能路由、安全防护和 BYOK，按量与 tokens plan（即将上线）计费并可开票；使用 <a href="https://www.shengsuanyun.com/?from=CH_LEJ88KWR">专属链接</a> 注册可获 10 元模力及首充 10% 赠送。
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://teamorouter.com/?utm_source=cc_haha&utm_medium=referral&utm_campaign=ai_directory">
-          <img src="docs/images/sponsors/teamorouter-logo.svg" width="180" alt="TeamoRouter">
-        </a>
-      </td>
-      <td valign="middle">
-        感谢 <a href="https://teamorouter.com/?utm_source=cc_haha&utm_medium=referral&utm_campaign=ai_directory">TeamoRouter</a> 赞助本项目！TeamoRouter 是面向开发者、AI 团队与企业的企业级 Agentic LLM 网关，无需任何订阅即可通过统一 API 使用 Claude Code、Codex、Gemini CLI 等热门 AI Agent，API 价格最高可享 90% 折扣。平台聚合 OpenAI、Anthropic、Vertex、Azure、AWS Bedrock 等数百家官方模型提供商与可信基础设施，全部经过 100% Agent 协议兼容、缓存性能与请求可追踪性验证，官方直连、非逆向，提供接近官方的 TTFT、99.6% SLA、最高 5,000 QPM 吞吐与行业领先的缓存命中率；同时支持集中账单、团队管理、BYOK、智能路由、用量分析与专属支持，并可通过 Teamo Desktop 一键使用各类 AI Agent。新用户通过 <a href="https://teamorouter.com/?utm_source=cc_haha&utm_medium=referral&utm_campaign=ai_directory">专属链接</a> 注册，首次充值可享 10% 折扣。
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-📧 **联系邮箱**：relakkes@gmail.com
-
----
-
-## 用户交流群
-
-使用过程中有问题、想反馈 Bug，或者想看看别人怎么用，欢迎扫码加入 cc-haha 飞书用户群。也可以直接来 [Issues](https://github.com/NanmiCoder/cc-haha/issues) 提问。
-
-<p align="center">
-  <img src="docs/images/community/feishu-group-qr.png" width="300" alt="cc-haha 飞书用户群二维码">
-</p>
-
----
-
-## ☕ 请作者喝杯咖啡
-
-如果这个项目对您有帮助，欢迎打赏支持，您的每一份支持都是我持续更新的动力 ❤️
-
-<table>
-<tr>
-<td align="center" width="33%">
-<img src="docs/images/donate/wechat_pay.jpeg" width="250" alt="微信赞赏"><br>
-<b>微信赞赏</b>
-</td>
-<td align="center" width="33%">
-<img src="docs/images/donate/zfb_pay.png" width="250" alt="支付宝"><br>
-<b>支付宝</b>
-</td>
-<td align="center" width="33%">
-<a href="https://buymeacoffee.com/relakkes" target="_blank">
-<img src="docs/images/donate/bmc_button.png" width="250" alt="Buy Me a Coffee">
-</a><br>
-<b>Buy Me a Coffee</b>
-</td>
-</tr>
-</table>
-
----
-
-## 技术栈
-
-| 类别 | 技术 |
+| 层级 | 技术 |
 |------|------|
-| 语言 | TypeScript |
-| 桌面 APP | Electron |
-| 桌面 UI | React + Vite |
-| 本地运行时 | [Bun](https://bun.sh) |
-| 终端 UI | React + [Ink](https://github.com/vadimdemedes/ink) |
-| CLI 解析 | Commander.js |
-| API | Anthropic SDK |
-| 协议 | MCP, LSP |
-
-## 感谢
-
-感谢以下开源项目和社区实践为本项目提供参考与启发：
-
-- [React](https://github.com/facebook/react)：前端工程与组件化 UI 生态。
-- [Electron](https://github.com/electron/electron)：跨端桌面应用能力与工程实践。
-- [cc-switch](https://github.com/farion1231/cc-switch)：模型供应商配置能力参考。
+| SPA | React + Vite + TypeScript（`web/`） |
+| 包管理 | **pnpm@11.17.0** |
+| Server / CLI | **Bun**（`Bun.serve`、`bun:sqlite`） |
+| 控制面 | SQLite WAL（`web-control`） |
+| 登录设备指纹 | [@fingerprintjs/fingerprintjs](https://github.com/fingerprintjs/fingerprintjs)（开源） |
 
 ---
 
-## ⭐ Star History
+## 许可证
 
-如果这个项目对你有帮助，欢迎点一个 ⭐ Star，让更多人发现 Claude Code Haha。
-
-<a href="https://www.star-history.com/#NanmiCoder/cc-haha&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=NanmiCoder/cc-haha&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=NanmiCoder/cc-haha&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=NanmiCoder/cc-haha&type=Date" />
-  </picture>
-</a>
+MIT — 见 [LICENSE](LICENSE)。

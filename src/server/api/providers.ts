@@ -4,9 +4,12 @@
  * GET    /api/providers              — list all saved providers + activeId
  * GET    /api/providers/presets       — list available presets
  * GET    /api/providers/auth-status   — check whether any usable auth exists
- * GET    /api/providers/settings      — read cc-haha managed settings.json
+ * GET    /api/providers/external-sources — discover Claude Code / cc-haha / haha sources
+ * GET    /api/providers/external-candidates — list importable providers (user opt-in)
+ * POST   /api/providers/external-import — import selected external providers by key
+ * GET    /api/providers/settings      — read haha managed settings.json
  * POST   /api/providers              — add a provider
- * PUT    /api/providers/settings      — update cc-haha managed settings.json
+ * PUT    /api/providers/settings      — update haha managed settings.json
  * PUT    /api/providers/:id          — update a provider
  * DELETE /api/providers/:id          — delete a provider
  * POST   /api/providers/:id/activate — activate a saved provider
@@ -23,20 +26,32 @@ import {
   UpdateProviderSchema,
   TestProviderSchema,
   ReorderProvidersSchema,
+  GROK_OFFICIAL_PROVIDER_ID,
 } from '../types/provider.js'
 import { ApiError, errorResponse } from '../middleware/errorHandler.js'
 import { diagnosticsService } from '../services/diagnosticsService.js'
+import { handleGrokAccountsApi } from './grok-accounts.js'
 
 const providerService = new ProviderService()
 
 export async function handleProvidersApi(
   req: Request,
-  _url: URL,
+  url: URL,
   segments: string[],
 ): Promise<Response> {
   try {
     const id = segments[2]
     const action = segments[3]
+
+    // Grok Official ONLY multi-account pool (not Claude/OpenAI/custom):
+    // /api/providers/grok-official/accounts[...]
+    if (id === GROK_OFFICIAL_PROVIDER_ID && action === 'accounts') {
+      return handleGrokAccountsApi(req, url, segments)
+    }
+    // Guard: reject /accounts on any other provider id
+    if (action === 'accounts') {
+      throw ApiError.badRequest('多账号池仅支持 Grok 官方（grok-official）服务商')
+    }
 
     // POST /api/providers/test
     if (id === 'test' && req.method === 'POST') {
@@ -52,6 +67,29 @@ export async function handleProvidersApi(
     if (id === 'auth-status' && req.method === 'GET') {
       const status = await providerService.checkAuthStatus()
       return Response.json(status)
+    }
+
+    // GET /api/providers/external-sources
+    if (id === 'external-sources' && req.method === 'GET') {
+      return Response.json(await providerService.listExternalSources())
+    }
+
+    // GET /api/providers/external-candidates
+    if (id === 'external-candidates' && req.method === 'GET') {
+      return Response.json(await providerService.listExternalProviderCandidates())
+    }
+
+    // POST /api/providers/external-import  { keys: string[] }
+    if (id === 'external-import' && req.method === 'POST') {
+      const body = await parseJsonBody(req)
+      const keys = Array.isArray((body as { keys?: unknown }).keys)
+        ? (body as { keys: unknown[] }).keys.filter((k): k is string => typeof k === 'string')
+        : []
+      if (keys.length === 0) {
+        throw ApiError.badRequest('keys 必须为非空字符串数组')
+      }
+      const result = await providerService.importExternalProviders(keys)
+      return Response.json(result)
     }
 
     // /api/providers/settings
@@ -123,6 +161,40 @@ export async function handleProvidersApi(
         })
       }
       return Response.json({ result })
+    }
+
+    // GET /api/providers/:id/export — credential JSON export
+    if (action === 'export' && req.method === 'GET') {
+      const payload = await providerService.exportProviderCredentials(id)
+      const filename = payload.filename || `provider-${id}.json`
+      return Response.json(payload, {
+        headers: {
+          'Cache-Control': 'no-store',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+        },
+      })
+    }
+
+    // POST /api/providers/:id/sync-quota
+    if (action === 'sync-quota' && req.method === 'POST') {
+      const result = await providerService.syncProviderQuota(id)
+      return Response.json(result, { headers: { 'Cache-Control': 'no-store' } })
+    }
+
+    // POST /api/providers/:id/refresh-credential
+    if (action === 'refresh-credential' && req.method === 'POST') {
+      const result = await providerService.refreshProviderCredential(id)
+      return Response.json(result, { headers: { 'Cache-Control': 'no-store' } })
+    }
+
+    // POST /api/providers/:id/rename  { name }
+    if (action === 'rename' && req.method === 'POST') {
+      const body = await parseJsonBody(req)
+      const name = body && typeof body === 'object' && 'name' in body
+        ? String((body as { name?: unknown }).name ?? '')
+        : ''
+      const provider = await providerService.renameProvider(id, name)
+      return Response.json({ provider })
     }
 
     // /api/providers/:id

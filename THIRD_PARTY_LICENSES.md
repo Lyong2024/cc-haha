@@ -13,7 +13,7 @@ This project includes code and binaries from the following open source projects.
 ## claude-tap
 
 - Project: claude-tap (https://github.com/liaohch3/claude-tap)
-- Adapted in: `desktop/src/lib/trace/sse.ts` (SSE stream reassembly, ported from Python to TypeScript)
+- Adapted in: `web/src/lib/trace/sse.ts` (SSE stream reassembly, ported from Python to TypeScript)
 - License: MIT
 
 ```

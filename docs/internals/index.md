@@ -10,8 +10,8 @@ order: 0
 Claude Code Haha 看着是一个桌面应用，实际是五块可以各自独立运行的代码拼起来的。想读源码或者提 PR，先把这五块的边界分清楚，后面每一篇都会落在其中一块里。
 
 ```text
-desktop/src/          前端 —— React + Zustand，只画界面，不碰系统能力
-desktop/electron/     桌面壳 —— Electron 主进程，管窗口、更新、终端、原生预览
+web/src/          前端 —— React + Zustand，只画界面，不碰系统能力
+web/electron/     桌面壳 —— Electron 主进程，管窗口、更新、终端、原生预览
 src/server/           本地 Server —— Bun.serve 的 REST + WebSocket，桌面端和手机端共用
 src/                  CLI 内核 —— Agent 循环、工具系统、权限、记忆、Skills
 adapters/             IM 接入 —— 每个平台一个独立 sidecar，桥回同一套会话
@@ -21,7 +21,7 @@ adapters/             IM 接入 —— 每个平台一个独立 sidecar，桥回
 
 - **CLI 内核是唯一执行方**。桌面端每开一个会话，Server 就拉起一个 CLI 子进程；前端点的每个按钮最后都变成发给它的一条消息。
 - **本地 Server 是唯一入口**。桌面端、手机 H5、IM adapter 走的是同一套 REST 与 WebSocket，只是鉴权等级不同。
-- **Electron 是当前桌面主路径**，`desktop/src-tauri/` 只保留打包资源和历史代码作回滚，不是运行时。
+- **Electron 是当前桌面主路径**，`web/src-tauri/` 只保留打包资源和历史代码作回滚，不是运行时。
 
 ## CLI 内核怎么分层
 
@@ -61,4 +61,4 @@ adapters/             IM 接入 —— 每个平台一个独立 sidecar，桥回
 | 提 PR 前要跑哪些检查、发版流程 | [参与贡献与质量门禁](./contributing.md) |
 | 在终端里跑 CLI、写自动化脚本 | [CLI 安装与启动](../cli/index.md) |
 
-产品功能怎么用不在这个分区，从 [开始使用](../start/index.md) 和 [桌面端功能](../desktop/index.md) 进。
+产品功能怎么用不在这个分区，从 [开始使用](../start/index.md) 和 [桌面端功能](../web/index.md) 进。

@@ -46,7 +46,7 @@ async function callComputerUseAction(
 }
 
 beforeAll(async () => {
-  configDir = await mkdtemp(join(tmpdir(), 'cc-haha-computer-use-api-'))
+  configDir = await mkdtemp(join(tmpdir(), 'haha-computer-use-api-'))
   process.env.CLAUDE_CONFIG_DIR = configDir
   computerUseApi = await import('../api/computer-use.js')
 })
@@ -54,7 +54,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   if (!configDir) throw new Error('configDir was not initialized')
   process.env.CLAUDE_CONFIG_DIR = configDir
-  await rm(join(configDir, 'cc-haha'), { recursive: true, force: true })
+  await rm(join(configDir, 'haha'), { recursive: true, force: true })
   await rm(join(configDir, '.runtime'), { recursive: true, force: true })
 })
 
@@ -90,7 +90,7 @@ describe('Computer Use API authorized app config', () => {
     expect(await getRes.json()).toMatchObject({ enabled: false })
 
     const raw = await readFile(
-      join(configDir!, 'cc-haha', 'computer-use-config.json'),
+      join(configDir!, 'haha', 'computer-use-config.json'),
       'utf8',
     )
     expect(JSON.parse(raw)).toMatchObject({ enabled: false })
@@ -157,13 +157,13 @@ describe('Computer Use API authorized app config', () => {
     }
 
     await expect(
-      readFile(join(configDir!, 'cc-haha', 'computer-use-config.json'), 'utf8'),
+      readFile(join(configDir!, 'haha', 'computer-use-config.json'), 'utf8'),
     ).rejects.toThrow()
   })
 
   it('fails closed on a corrupt stored config and refuses to overwrite it', async () => {
-    const configPath = join(configDir!, 'cc-haha', 'computer-use-config.json')
-    await mkdir(join(configDir!, 'cc-haha'), { recursive: true })
+    const configPath = join(configDir!, 'haha', 'computer-use-config.json')
+    await mkdir(join(configDir!, 'haha'), { recursive: true })
     await writeFile(configPath, '{"enabled":"yes"}', 'utf8')
 
     const getRes = await callAuthorizedApps('GET')
@@ -183,8 +183,8 @@ describe('Computer Use API authorized app config', () => {
   })
 
   it('preserves old and future config fields while changing a known field', async () => {
-    const configPath = join(configDir!, 'cc-haha', 'computer-use-config.json')
-    await mkdir(join(configDir!, 'cc-haha'), { recursive: true })
+    const configPath = join(configDir!, 'haha', 'computer-use-config.json')
+    await mkdir(join(configDir!, 'haha'), { recursive: true })
     await writeFile(configPath, JSON.stringify({
       enabled: true,
       authorizedApps: [

@@ -62,6 +62,7 @@ import {
   isPetClientMessageAllowed,
   toPetServerMessage,
 } from '../petAccessPolicy.js'
+import { handleHostShellWebSocket } from './hostShellHandler.js'
 
 const settingsService = new SettingsService()
 const providerService = new ProviderService()
@@ -333,11 +334,13 @@ function translateCliUsage(usage: unknown): TokenUsage {
 export type WebSocketData = {
   sessionId: string
   connectedAt: number
-  channel: 'client' | 'sdk'
+  channel: 'client' | 'sdk' | 'host-shell'
   clientKind?: 'full' | 'pet'
   sdkToken: string | null
   serverPort: number
   serverHost: string
+  /** Pure-web host shell session id (channel === 'host-shell') */
+  shellSessionId?: string | null
 }
 
 // Active WebSocket clients, grouped by session. Desktop, H5, and IM adapters can
@@ -357,6 +360,11 @@ const taskNotificationPersistence = new Map<string, Map<string, Promise<void>>>(
 export const handleWebSocket = {
   open(ws: ServerWebSocket<WebSocketData>) {
     const { sessionId, channel, sdkToken } = ws.data
+
+    if (channel === 'host-shell') {
+      handleHostShellWebSocket.open(ws as any)
+      return
+    }
 
     if (channel === 'sdk') {
       if (!conversationService.authorizeSdkConnection(sessionId, sdkToken)) {
@@ -411,6 +419,11 @@ export const handleWebSocket = {
   },
 
   message(ws: ServerWebSocket<WebSocketData>, rawMessage: string | Buffer) {
+    if (ws.data.channel === 'host-shell') {
+      handleHostShellWebSocket.message(ws as any, rawMessage)
+      return
+    }
+
     if (ws.data.channel === 'sdk') {
       const payload = typeof rawMessage === 'string' ? rawMessage : rawMessage.toString()
       conversationService.handleSdkPayload(ws.data.sessionId, payload)
@@ -514,6 +527,11 @@ export const handleWebSocket = {
   },
 
   close(ws: ServerWebSocket<WebSocketData>, code: number, reason: string) {
+    if (ws.data.channel === 'host-shell') {
+      handleHostShellWebSocket.close(ws as any)
+      return
+    }
+
     const { sessionId, channel } = ws.data
 
     if (channel === 'sdk') {
@@ -1074,32 +1092,38 @@ async function handleSetRuntimeConfig(
     return
   }
 
-  if (conversationService.hasSession(sessionId)) {
-    await enqueueRuntimeTransition(sessionId, async () => {
-      await persistSessionRuntimeConfig(sessionId, nextOverride)
-      await restartSessionWithRuntimeConfig(ws, sessionId)
-    })
-    return
-  }
-
+  // CRITICAL: prewarm_session and set_runtime_config are handled concurrently
+  // (both fire-and-forget). startSession registers the process in the session
+  // map immediately after spawn while still startupPending. If we treat that
+  // as a "ready" session and call stopSession, the still-awaiting startup
+  // waiter sees exit 143 (SIGTERM) and prewarm fails with CLI_START_FAILED.
+  // Always wait out in-flight startup before restarting.
   const pendingStartup = sessionStartupPromises.get(sessionId)
-  if (pendingStartup) {
+  const startupInFlight =
+    !!pendingStartup || conversationService.isSessionStartupPending(sessionId)
+
+  if (startupInFlight) {
     const startupRuntimeVersion = sessionStartupRuntimeVersions.get(sessionId) ?? 0
     const currentRuntimeVersion = runtimeOverrideVersions.get(sessionId) ?? 0
     if (startupRuntimeVersion >= currentRuntimeVersion) {
+      // The in-flight start already captured this (or a newer) override version.
       await persistSessionRuntimeConfig(sessionId, nextOverride)
       return
     }
 
     await enqueueRuntimeTransition(sessionId, async () => {
       await persistSessionRuntimeConfig(sessionId, nextOverride)
-      await pendingStartup.catch(() => undefined)
+      if (pendingStartup) {
+        await pendingStartup.catch(() => undefined)
+      }
+      await waitForSessionStartupToSettle(sessionId)
       const currentOverride = runtimeOverrides.get(sessionId)
       if (
         currentOverride?.providerId !== nextOverride.providerId ||
         currentOverride.modelId !== nextOverride.modelId ||
         currentOverride.effort !== nextOverride.effort ||
-        !conversationService.hasSession(sessionId)
+        !conversationService.hasSession(sessionId) ||
+        conversationService.isSessionStartupPending(sessionId)
       ) {
         return
       }
@@ -1108,7 +1132,28 @@ async function handleSetRuntimeConfig(
     return
   }
 
+  if (conversationService.hasSession(sessionId)) {
+    await enqueueRuntimeTransition(sessionId, async () => {
+      await persistSessionRuntimeConfig(sessionId, nextOverride)
+      await restartSessionWithRuntimeConfig(ws, sessionId)
+    })
+    return
+  }
+
   await persistSessionRuntimeConfig(sessionId, nextOverride)
+}
+
+/** Wait until startSession has left the startupPending window (or the session is gone). */
+async function waitForSessionStartupToSettle(
+  sessionId: string,
+  timeoutMs = 15_000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    if (!conversationService.hasSession(sessionId)) return
+    if (!conversationService.isSessionStartupPending(sessionId)) return
+    await new Promise((resolve) => setTimeout(resolve, 40))
+  }
 }
 
 async function restartSessionWithPermissionMode(
@@ -1610,7 +1655,7 @@ function cleanupSessionRuntimeState(sessionId: string) {
 }
 
 function getPrewarmIdleTimeoutMs(): number {
-  const raw = process.env.CC_HAHA_PREWARM_IDLE_TIMEOUT_MS
+  const raw = process.env.HAHA_PREWARM_IDLE_TIMEOUT_MS
   if (!raw) return DEFAULT_PREWARM_IDLE_TIMEOUT_MS
   const parsed = Number.parseInt(raw, 10)
   return Number.isFinite(parsed) && parsed >= 0
@@ -3213,7 +3258,7 @@ async function getDefaultRuntimeSettings(): Promise<RuntimeSettings> {
 
   let model: string | undefined
   if (resolvedActiveId) {
-    // Provider is active — only consult provider-managed cc-haha settings.
+    // Provider is active — only consult provider-managed haha settings.
     // Global ~/.claude/settings.json model values must not bleed into provider mode.
     const baseModel =
       typeof modelSettings.model === 'string' && modelSettings.model.trim()

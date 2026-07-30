@@ -55,7 +55,7 @@ if (result.checks.policy) {
 }
 
 if (result.checks.desktop) {
-  await run(['bun', 'run', 'check:desktop'])
+  await run(['bun', 'run', 'check:web'])
 }
 
 if (result.checks.server) {

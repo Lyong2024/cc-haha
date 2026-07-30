@@ -6,7 +6,7 @@ These rules apply to the public landing page and documentation experience under 
 
 - Keep the site independently installable with `npm ci` and buildable with `npm run build`.
 - Keep `npm run check` deterministic, offline, and responsible for site-specific validation beyond compilation.
-- Preserve the GitHub Pages custom-domain contract; production assets and routes must work from the root of `cchaha.ai`. `scripts/prepare-static-output.mjs` hard-fails when the CNAME drifts.
+- Preserve the GitHub Pages custom-domain contract; production assets and routes must work from the root of `Haha.ai`. `scripts/prepare-static-output.mjs` hard-fails when the CNAME drifts.
 - Treat files under `docs/` as the source of truth for long-form Chinese and English documentation. Keep paired public routes aligned when both languages exist.
 - Do not copy private user state, credentials, local filesystem paths, or unredacted product screenshots into the site.
 - Run `bun run check:docs` after site or docs changes and include desktop plus narrow-mobile browser evidence for user-visible layout changes.
@@ -39,4 +39,4 @@ Sidebar grouping comes from the `sections` array in the generator — register a
 
 ## Fonts
 
-Self-hosted in `public/fonts/`, copied from `desktop/public/fonts/`. **Never add a Google Fonts `@import` or `<link>`** — it is unreachable from mainland China and would leave every heading in a fallback serif. Only the latin subsets are hosted; Chinese glyphs fall through to the platform font on purpose, exactly as the desktop app does.
+Self-hosted in `public/fonts/`, copied from `web/public/fonts/`. **Never add a Google Fonts `@import` or `<link>`** — it is unreachable from mainland China and would leave every heading in a fallback serif. Only the latin subsets are hosted; Chinese glyphs fall through to the platform font on purpose, exactly as the desktop app does.

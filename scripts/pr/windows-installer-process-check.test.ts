@@ -3,16 +3,16 @@ import { readFileSync } from 'node:fs'
 
 describe('Windows installer process matching', () => {
   test('uses a directory-boundary-aware process helper', () => {
-    const installerHook = readFileSync('desktop/build/installer.nsh', 'utf8')
+    const installerHook = readFileSync('web/build/installer.nsh', 'utf8')
     const processHelper = readFileSync(
-      'desktop/build/check-install-processes.ps1',
+      'web/build/check-install-processes.ps1',
       'utf8',
     )
 
     expect(installerHook).not.toContain('!insertmacro _CHECK_APP_RUNNING')
     expect(installerHook).toContain('check-install-processes.ps1')
-    expect(installerHook).toContain('!macro CcHahaFindInstallProcess')
-    expect(installerHook).toContain('!macro CcHahaKillInstallProcess')
+    expect(installerHook).toContain('!macro HahaFindInstallProcess')
+    expect(installerHook).toContain('!macro HahaKillInstallProcess')
     expect(installerHook).toContain('-InstallerPid "$pid"')
     expect(installerHook).toContain('-InstallerParentPid "$1"')
     expect(installerHook).toContain('tasklist /FI "USERNAME eq %USERNAME%" /FO CSV /NH >')
@@ -56,7 +56,7 @@ describe('Windows installer process matching', () => {
 
   test('keeps sibling-prefix and real install process cases in Windows smoke', () => {
     const installerSmoke = readFileSync(
-      'desktop/scripts/windows-installer-smoke.ps1',
+      'web/scripts/windows-installer-smoke.ps1',
       'utf8',
     )
 

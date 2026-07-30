@@ -65,7 +65,7 @@ describe('coverage gate helpers', () => {
       'FNF:2',
       'FNH:2',
       'end_of_record',
-      'SF:/repo/desktop/src-tauri/target/generated.js',
+      'SF:/repo/web/src-tauri/target/generated.js',
       'LF:100',
       'LH:0',
       'FNF:10',
@@ -139,19 +139,19 @@ describe('coverage gate helpers', () => {
       'LF:1',
       'LH:1',
       'end_of_record',
-      'SF:/repo/desktop/src/main.tsx',
+      'SF:/repo/web/src/main.tsx',
       'LF:1',
       'LH:0',
       'end_of_record',
-      'SF:desktop/src/App.tsx',
+      'SF:web/src/App.tsx',
       'LF:1',
       'LH:1',
       'end_of_record',
     ].join('\n'), 'desktop')
 
-    expect(lcov).toContain('SF:desktop/src/stores/updateStore.ts')
-    expect(lcov).toContain('SF:/repo/desktop/src/main.tsx')
-    expect(lcov).toContain('SF:desktop/src/App.tsx')
+    expect(lcov).toContain('SF:web/src/stores/updateStore.ts')
+    expect(lcov).toContain('SF:/repo/web/src/main.tsx')
+    expect(lcov).toContain('SF:web/src/App.tsx')
   })
 
   test('evaluates changed executable line coverage', () => {
@@ -186,16 +186,16 @@ describe('coverage gate helpers', () => {
 
   test('excludes non-instrumented desktop styles from changed-line coverage', () => {
     const changedLines = parseChangedLinesFromDiff([
-      'diff --git a/desktop/src/theme/globals.css b/desktop/src/theme/globals.css',
-      '--- a/desktop/src/theme/globals.css',
-      '+++ b/desktop/src/theme/globals.css',
+      'diff --git a/web/src/theme/globals.css b/web/src/theme/globals.css',
+      '--- a/web/src/theme/globals.css',
+      '+++ b/web/src/theme/globals.css',
       '@@ -10,0 +11,2 @@',
       '+.sidebar {',
       '+  color: var(--color-text-primary);',
       '+}',
-      'diff --git a/desktop/src/main.tsx b/desktop/src/main.tsx',
-      '--- a/desktop/src/main.tsx',
-      '+++ b/desktop/src/main.tsx',
+      'diff --git a/web/src/main.tsx b/web/src/main.tsx',
+      '--- a/web/src/main.tsx',
+      '+++ b/web/src/main.tsx',
       '@@ -20,0 +21,1 @@',
       '+bootstrapDesktopApp()',
     ].join('\n'))
@@ -203,7 +203,7 @@ describe('coverage gate helpers', () => {
     const result = evaluateChangedLineCoverage(
       changedLines,
       new Map([
-        ['desktop/src/main.tsx', {
+        ['web/src/main.tsx', {
           suiteId: 'desktop',
           executableLines: new Set([21]),
           coveredLines: new Set([21]),
@@ -212,14 +212,14 @@ describe('coverage gate helpers', () => {
       [{
         id: 'desktop',
         title: 'Desktop',
-        includePrefixes: ['desktop/src/'],
+        includePrefixes: ['web/src/'],
         excludeSuffixes: ['.css'],
       }],
       90,
     )
 
     expect(result.files).toEqual([{
-      file: 'desktop/src/main.tsx',
+      file: 'web/src/main.tsx',
       suiteId: 'desktop',
       covered: 1,
       total: 1,
@@ -337,7 +337,7 @@ describe('coverage gate helpers', () => {
   })
 
   test('collects non-quarantined server tests when review windows have expired', () => {
-    const root = mkdtempSync(join(tmpdir(), 'cc-haha-coverage-'))
+    const root = mkdtempSync(join(tmpdir(), 'haha-coverage-'))
     try {
       mkdirSync(join(root, 'src/server/__tests__'), { recursive: true })
       mkdirSync(join(root, 'src/services'), { recursive: true })

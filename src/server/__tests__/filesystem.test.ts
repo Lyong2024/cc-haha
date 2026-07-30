@@ -186,9 +186,9 @@ describe('filesystem API', () => {
     const srcPaths = srcBody.entries.map(entry => entry.relativePath)
     expect(srcPaths[0]).toBe('src')
     expect(srcPaths.indexOf('src/hooks')).toBeGreaterThan(-1)
-    expect(srcPaths.indexOf('desktop/src')).toBeGreaterThan(-1)
+    expect(srcPaths.indexOf('web/src')).toBeGreaterThan(-1)
     expect(srcPaths.indexOf('scripts/quality-gate/baseline/fixtures/cross-module-refactor/src')).toBeGreaterThan(-1)
-    expect(srcPaths.indexOf('src/hooks')).toBeLessThan(srcPaths.indexOf('desktop/src'))
+    expect(srcPaths.indexOf('src/hooks')).toBeLessThan(srcPaths.indexOf('web/src'))
     expect(srcPaths.indexOf('src/hooks')).toBeLessThan(srcPaths.indexOf('scripts/quality-gate/baseline/fixtures/cross-module-refactor/src'))
   })
 

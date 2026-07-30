@@ -108,7 +108,7 @@ function makeTaskNotificationEntry(
   status: 'completed' | 'failed' | 'stopped',
 ): Record<string, unknown> {
   return {
-    type: 'cc-haha-task-notification',
+    type: 'haha-task-notification',
     isMeta: true,
     taskNotification: {
       taskId,

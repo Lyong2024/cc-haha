@@ -414,9 +414,9 @@ function trimRuns(data: RunsFile): void {
 const DEFAULT_TASK_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes
 
 export function resolveCronTaskTimeoutMs(
-  env: { CC_HAHA_TASK_TIMEOUT_MS?: string } = process.env,
+  env: { HAHA_TASK_TIMEOUT_MS?: string } = process.env,
 ): number {
-  const raw = env.CC_HAHA_TASK_TIMEOUT_MS?.trim()
+  const raw = env.HAHA_TASK_TIMEOUT_MS?.trim()
   if (!raw) return DEFAULT_TASK_TIMEOUT_MS
 
   const timeoutMs = Number(raw)
@@ -461,7 +461,7 @@ export function resolveCronProjectRoot(
   options: CronCliResolutionOptions = {},
 ): string {
   const env = options.env ?? process.env
-  const explicitRoot = env.CC_HAHA_ROOT?.trim()
+  const explicitRoot = env.HAHA_ROOT?.trim()
   if (explicitRoot && isSourceProjectRoot(path.resolve(explicitRoot))) {
     return path.resolve(explicitRoot)
   }
@@ -884,7 +884,7 @@ export class CronScheduler {
       CLAUDE_CODE_ENTRYPOINT: 'sdk-cli',
       CALLER_DIR: workDir,
       PWD: workDir,
-      CC_HAHA_SKIP_DOTENV: '1',
+      HAHA_SKIP_DOTENV: '1',
       ...(explicitProviderEnv
         ? {
             CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST: '1',
@@ -909,13 +909,13 @@ export class CronScheduler {
       return true
     }
 
-    const ccHahaDir = path.join(this.getConfigDir(), 'cc-haha')
-    if (existsSync(path.join(ccHahaDir, 'providers.json'))) {
+    const HahaDir = path.join(this.getConfigDir(), 'haha')
+    if (existsSync(path.join(HahaDir, 'providers.json'))) {
       return true
     }
 
     try {
-      const raw = readFileSync(path.join(ccHahaDir, 'settings.json'), 'utf-8')
+      const raw = readFileSync(path.join(HahaDir, 'settings.json'), 'utf-8')
       const parsed = JSON.parse(raw) as { env?: Record<string, string> }
       const env = parsed.env ?? {}
       return Object.entries(env).some(
@@ -939,7 +939,7 @@ export class CronScheduler {
 
     try {
       const raw = readFileSync(
-        path.join(this.getConfigDir(), 'cc-haha', 'settings.json'),
+        path.join(this.getConfigDir(), 'haha', 'settings.json'),
         'utf-8',
       )
       const parsed = JSON.parse(raw) as { env?: Record<string, string> }

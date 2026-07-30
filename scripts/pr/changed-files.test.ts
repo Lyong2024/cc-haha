@@ -35,7 +35,7 @@ describe('changedFilesForLocalPrCheck', () => {
     originalCwd = process.cwd()
     originalBaseRef = process.env.PR_BASE_REF
     delete process.env.PR_BASE_REF
-    tempDir = mkdtempSync(join(tmpdir(), 'cc-haha-changed-files-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'haha-changed-files-'))
     process.chdir(tempDir)
     runGit(['init', '-b', 'main'])
     runGit(['config', 'user.email', 'test@example.com'])
@@ -67,11 +67,11 @@ describe('changedFilesForLocalPrCheck', () => {
     runGit(['checkout', '-b', 'feature/test'])
     writeFile('src/server/committed.ts', 'export const committed = true\n')
     commit('feature change')
-    writeFile('desktop/src/local.ts', 'export const local = true\n')
+    writeFile('web/src/local.ts', 'export const local = true\n')
 
     await expect(changedFilesForLocalPrCheck()).resolves.toEqual([
       'src/server/committed.ts',
-      'desktop/src/local.ts',
+      'web/src/local.ts',
     ])
   })
 })

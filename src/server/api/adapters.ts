@@ -11,17 +11,61 @@ import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
 import * as path from 'node:path'
 import { ApiError, errorResponse } from '../middleware/errorHandler.js'
-import {
-  pollWechatLoginWithQr,
-  startWechatLoginWithQr,
-  WECHAT_DEFAULT_BASE_URL,
-} from '../../../adapters/wechat/protocol.js'
-import {
-  logoutWhatsAppAuth,
-  pollWhatsAppLoginWithQr,
-  startWhatsAppLoginWithQr,
-} from '../../../adapters/whatsapp/protocol.js'
-import { loadConfig } from '../../../adapters/common/config.js'
+
+// WhatsApp/WeChat protocol modules pull optional platform SDKs (baileys, etc.).
+// Load them only on WhatsApp/WeChat login routes so GET /api/adapters never
+// crashes the pure-web server when adapters/node_modules is incomplete.
+
+const WECHAT_DEFAULT_BASE_URL = 'https://ilinkai.weixin.qq.com'
+
+function isMissingOptionalModule(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const err = error as { code?: string; message?: string }
+  if (err.code === 'ERR_MODULE_NOT_FOUND' || err.code === 'MODULE_NOT_FOUND') return true
+  const message = err.message ?? ''
+  return (
+    message.includes('Cannot find module') ||
+    message.includes('Cannot find package') ||
+    /baileys/i.test(message)
+  )
+}
+
+function optionalSdkError(platform: string, error: unknown): ApiError {
+  if (isMissingOptionalModule(error)) {
+    return new ApiError(
+      503,
+      `${platform} adapter SDK is not installed in this runtime. Run \`cd adapters && bun install\` (or pnpm install) to enable login/QR flows. Config GET/PUT still works without it.`,
+      'OPTIONAL_SDK_MISSING',
+    )
+  }
+  if (error instanceof ApiError) return error
+  const message = error instanceof Error ? error.message : String(error)
+  return new ApiError(500, message, 'ADAPTER_PROTOCOL_ERROR')
+}
+
+async function loadWechatProtocol() {
+  try {
+    return await import('../../../adapters/wechat/protocol.js')
+  } catch (error) {
+    throw optionalSdkError('WeChat', error)
+  }
+}
+
+async function loadWhatsAppProtocol() {
+  try {
+    return await import('../../../adapters/whatsapp/protocol.js')
+  } catch (error) {
+    throw optionalSdkError('WhatsApp', error)
+  }
+}
+
+async function loadAdapterCommonConfig() {
+  try {
+    return await import('../../../adapters/common/config.js')
+  } catch (error) {
+    throw optionalSdkError('Adapter config', error)
+  }
+}
 
 const ALLOWED_TOP_KEYS = new Set(['serverUrl', 'defaultProjectDir', 'telegram', 'feishu', 'wechat', 'dingtalk', 'whatsapp', 'pairing'])
 const MAX_TEXT_LENGTH = 16_384
@@ -480,6 +524,7 @@ export async function handleAdaptersApi(
 
 async function handleWechatAdaptersApi(req: Request, tail: string[]): Promise<Response> {
   if (req.method === 'POST' && tail[0] === 'login' && tail[1] === 'start') {
+    const { startWechatLoginWithQr } = await loadWechatProtocol()
     const result = await startWechatLoginWithQr({ force: true })
     return Response.json(result)
   }
@@ -492,6 +537,7 @@ async function handleWechatAdaptersApi(req: Request, tail: string[]): Promise<Re
     if (typeof sessionKey !== 'string' || !sessionKey || sessionKey.length > 256) {
       throw ApiError.badRequest('Missing or invalid sessionKey')
     }
+    const { pollWechatLoginWithQr } = await loadWechatProtocol()
     const result = await pollWechatLoginWithQr({ sessionKey })
     if (result.connected) {
       await adapterService.updateConfig({
@@ -527,6 +573,8 @@ async function handleWechatAdaptersApi(req: Request, tail: string[]): Promise<Re
 async function handleWhatsAppAdaptersApi(req: Request, tail: string[]): Promise<Response> {
   if (req.method === 'POST' && tail[0] === 'login' && tail[1] === 'start') {
     await cleanupExpiredWhatsAppStaging()
+    const { loadConfig } = await loadAdapterCommonConfig()
+    const { startWhatsAppLoginWithQr } = await loadWhatsAppProtocol()
     const config = loadConfig()
     const configuredTarget = path.resolve(config.whatsapp.authDir)
     const targetDir = isManagedWhatsAppAuthDir(configuredTarget)
@@ -549,6 +597,7 @@ async function handleWhatsAppAdaptersApi(req: Request, tail: string[]): Promise<
       })
     } catch (error) {
       await removeManagedWhatsAppDir(stagingDir)
+      if (isMissingOptionalModule(error)) throw optionalSdkError('WhatsApp', error)
       throw error
     }
   }
@@ -569,6 +618,7 @@ async function handleWhatsAppAdaptersApi(req: Request, tail: string[]): Promise<
         message: 'WhatsApp login session expired. Generate a new QR code.',
       })
     }
+    const { pollWhatsAppLoginWithQr } = await loadWhatsAppProtocol()
     const result = await pollWhatsAppLoginWithQr({ sessionKey })
     if (result.connected) {
       whatsappLoginDirs.delete(sessionKey)
@@ -593,9 +643,28 @@ async function handleWhatsAppAdaptersApi(req: Request, tail: string[]): Promise<
   }
 
   if (req.method === 'POST' && tail[0] === 'unbind') {
-    const config = loadConfig()
-    if (isManagedWhatsAppAuthDir(config.whatsapp.authDir)) {
-      await logoutWhatsAppAuth(config.whatsapp.authDir)
+    // Unbind should succeed even when baileys is missing: clear local config,
+    // and only attempt auth-dir logout when the SDK can load.
+    let authDir: string | null = null
+    try {
+      const { loadConfig } = await loadAdapterCommonConfig()
+      const config = loadConfig()
+      authDir = config.whatsapp?.authDir
+        ? path.resolve(config.whatsapp.authDir)
+        : null
+    } catch {
+      authDir = null
+    }
+    if (authDir && isManagedWhatsAppAuthDir(authDir)) {
+      try {
+        const { logoutWhatsAppAuth } = await loadWhatsAppProtocol()
+        await logoutWhatsAppAuth(authDir)
+      } catch (error) {
+        // Missing SDK or logout failure: still clear web config.
+        if (!isMissingOptionalModule(error)) {
+          console.warn('[adapters] WhatsApp logout failed during unbind:', error)
+        }
+      }
     }
     await adapterService.updateConfig({
       whatsapp: {

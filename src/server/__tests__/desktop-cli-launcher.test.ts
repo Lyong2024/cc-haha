@@ -119,7 +119,7 @@ describe('ensureDesktopCliLauncherInstalled', () => {
     expect(getDesktopCliCommandName('win32')).toBe('claude-haha.cmd')
 
     process.env.CLAUDE_CONFIG_DIR = 'C:\\Portable\\ClaudeConfig'
-    const wrapper = buildWindowsLauncherWrapper('C:\\Apps\\cc-haha\\claude-sidecar.exe')
+    const wrapper = buildWindowsLauncherWrapper('C:\\Apps\\haha\\claude-sidecar.exe')
 
     expect(wrapper).toContain('set "CLAUDE_CONFIG_DIR=C:\\Portable\\ClaudeConfig"')
     expect(wrapper).toContain(

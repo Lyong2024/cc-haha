@@ -269,29 +269,29 @@ const traceCaptureDiagnostics = {
 }
 
 export function shouldCaptureApiTrace(): boolean {
-  if (isEnvDefinedFalsy(process.env.CC_HAHA_TRACE_API_CALLS)) return false
-  if (isEnvTruthy(process.env.CC_HAHA_TRACE_API_CALLS)) return true
+  if (isEnvDefinedFalsy(process.env.HAHA_TRACE_API_CALLS)) return false
+  if (isEnvTruthy(process.env.HAHA_TRACE_API_CALLS)) return true
   return readTraceCaptureSettingsSync().enabled &&
     process.env.CLAUDE_CODE_ENTRYPOINT === 'claude-desktop'
 }
 
 export function isTraceCaptureEnabled(): boolean {
-  if (isEnvDefinedFalsy(process.env.CC_HAHA_TRACE_API_CALLS)) return false
-  if (isEnvTruthy(process.env.CC_HAHA_TRACE_API_CALLS)) return true
+  if (isEnvDefinedFalsy(process.env.HAHA_TRACE_API_CALLS)) return false
+  if (isEnvTruthy(process.env.HAHA_TRACE_API_CALLS)) return true
   return readTraceCaptureSettingsSync().enabled
 }
 
 export function getTraceStorageDir(): string {
-  return join(getClaudeConfigHomeDir(), 'cc-haha', 'traces')
+  return join(getClaudeConfigHomeDir(), 'haha', 'traces')
 }
 
 function currentTraceScopeContext(): TraceScopeContext {
   const scope = getClaudeConfigHomeDir()
   return {
     scope,
-    storageDir: join(scope, 'cc-haha', 'traces'),
+    storageDir: join(scope, 'haha', 'traces'),
     target: {
-      path: join(scope, 'cc-haha', 'db', 'trace-index-v1.sqlite'),
+      path: join(scope, 'haha', 'db', 'trace-index-v1.sqlite'),
       scope,
     },
   }
@@ -1852,13 +1852,13 @@ async function appendTraceEntry(sessionId: string, entry: TraceFileEntry): Promi
   const scope = getClaudeConfigHomeDir()
   const filePath = join(
     scope,
-    'cc-haha',
+    'haha',
     'traces',
     `${normalizedSessionId}.jsonl`,
   )
   const target: TraceIndexTarget = {
     scope,
-    path: join(scope, 'cc-haha', 'db', 'trace-index-v1.sqlite'),
+    path: join(scope, 'haha', 'db', 'trace-index-v1.sqlite'),
   }
   const queueKey = `${scope}\0${normalizedSessionId}`
   const previous = traceWriteQueues.get(queueKey) ?? Promise.resolve()
@@ -2179,7 +2179,7 @@ function sanitizeTraceFileName(sessionId: string): string {
 }
 
 function getManagedSettingsPath(scope = getClaudeConfigHomeDir()): string {
-  return join(scope, 'cc-haha', 'settings.json')
+  return join(scope, 'haha', 'settings.json')
 }
 
 function defaultTraceCaptureSettings(
@@ -2187,7 +2187,7 @@ function defaultTraceCaptureSettings(
 ): TraceCaptureSettings {
   return {
     enabled: true,
-    storageDir: join(scope, 'cc-haha', 'traces'),
+    storageDir: join(scope, 'haha', 'traces'),
   }
 }
 

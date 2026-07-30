@@ -51,7 +51,7 @@ function makeRequest(
 }
 
 async function readDesktopUiFile(): Promise<Record<string, unknown>> {
-  const raw = await fs.readFile(path.join(tmpDir, 'cc-haha', 'desktop-ui.json'), 'utf-8')
+  const raw = await fs.readFile(path.join(tmpDir, 'haha', 'desktop-ui.json'), 'utf-8')
   return JSON.parse(raw) as Record<string, unknown>
 }
 
@@ -68,8 +68,8 @@ describe('DesktopUiPreferencesService', () => {
     expect(result.preferences).toEqual({
       schemaVersion: 4,
       profile: {
-        displayName: 'cc-haha',
-        subtitle: 'github.com/NanmiCoder/cc-haha',
+        displayName: 'haha',
+        subtitle: 'github.com/NanmiCoder/__KEEP_HAHA__',
         avatarFile: null,
         avatarUpdatedAt: null,
       },
@@ -85,9 +85,9 @@ describe('DesktopUiPreferencesService', () => {
   })
 
   test('normalizes old schema files and preserves unknown fields when updating sidebar preferences', async () => {
-    await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
+    await fs.mkdir(path.join(tmpDir, 'haha'), { recursive: true })
     await fs.writeFile(
-      path.join(tmpDir, 'cc-haha', 'desktop-ui.json'),
+      path.join(tmpDir, 'haha', 'desktop-ui.json'),
       JSON.stringify({
         schemaVersion: 2,
         futureField: { keep: true },
@@ -113,8 +113,8 @@ describe('DesktopUiPreferencesService', () => {
       schemaVersion: 4,
       futureField: { keep: true },
       profile: {
-        displayName: 'cc-haha',
-        subtitle: 'github.com/NanmiCoder/cc-haha',
+        displayName: 'haha',
+        subtitle: 'github.com/NanmiCoder/__KEEP_HAHA__',
         avatarFile: null,
         avatarUpdatedAt: null,
       },
@@ -131,8 +131,8 @@ describe('DesktopUiPreferencesService', () => {
       schemaVersion: 4,
       futureField: { keep: true },
       profile: {
-        displayName: 'cc-haha',
-        subtitle: 'github.com/NanmiCoder/cc-haha',
+        displayName: 'haha',
+        subtitle: 'github.com/NanmiCoder/__KEEP_HAHA__',
         avatarFile: null,
         avatarUpdatedAt: null,
       },
@@ -149,24 +149,24 @@ describe('DesktopUiPreferencesService', () => {
   })
 
   test('quarantines corrupt desktop-ui.json and reports defaults as missing', async () => {
-    await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
-    await fs.writeFile(path.join(tmpDir, 'cc-haha', 'desktop-ui.json'), '{bad json', 'utf-8')
+    await fs.mkdir(path.join(tmpDir, 'haha'), { recursive: true })
+    await fs.writeFile(path.join(tmpDir, 'haha', 'desktop-ui.json'), '{bad json', 'utf-8')
 
     const service = new DesktopUiPreferencesService()
     const result = await service.readPreferences()
-    const files = await fs.readdir(path.join(tmpDir, 'cc-haha'))
+    const files = await fs.readdir(path.join(tmpDir, 'haha'))
 
     expect(result.exists).toBe(false)
     expect(result.preferences.sidebar.hiddenProjects).toEqual([])
-    expect(result.preferences.profile.displayName).toBe('cc-haha')
+    expect(result.preferences.profile.displayName).toBe('haha')
     expect(result.preferences.pet).toEqual(DEFAULT_PET_PREFERENCES)
     expect(files.some((name) => name.startsWith('desktop-ui.json.invalid-'))).toBe(true)
   })
 
   test('normalizes invalid pet preferences while preserving unrelated fields', async () => {
-    await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
+    await fs.mkdir(path.join(tmpDir, 'haha'), { recursive: true })
     await fs.writeFile(
-      path.join(tmpDir, 'cc-haha', 'desktop-ui.json'),
+      path.join(tmpDir, 'haha', 'desktop-ui.json'),
       JSON.stringify({
         schemaVersion: 3,
         futureField: { keep: true },
@@ -206,7 +206,7 @@ describe('DesktopUiPreferencesService', () => {
     })
     const current = await readDesktopUiFile()
     await fs.writeFile(
-      path.join(tmpDir, 'cc-haha', 'desktop-ui.json'),
+      path.join(tmpDir, 'haha', 'desktop-ui.json'),
       JSON.stringify({ ...current, futureField: { keep: true } }),
       'utf-8',
     )
@@ -278,9 +278,9 @@ describe('DesktopUiPreferencesService', () => {
   })
 
   test('migrates a schema-3 pet to a hidden task panel while preserving other and unknown fields', async () => {
-    await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
+    await fs.mkdir(path.join(tmpDir, 'haha'), { recursive: true })
     await fs.writeFile(
-      path.join(tmpDir, 'cc-haha', 'desktop-ui.json'),
+      path.join(tmpDir, 'haha', 'desktop-ui.json'),
       JSON.stringify({
         schemaVersion: 3,
         futureField: { keep: true },
@@ -318,9 +318,9 @@ describe('DesktopUiPreferencesService', () => {
   })
 
   test('patches pet preferences without downgrading future schema or sibling fields', async () => {
-    await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
+    await fs.mkdir(path.join(tmpDir, 'haha'), { recursive: true })
     await fs.writeFile(
-      path.join(tmpDir, 'cc-haha', 'desktop-ui.json'),
+      path.join(tmpDir, 'haha', 'desktop-ui.json'),
       JSON.stringify({
         schemaVersion: 99,
         futureRoot: { keep: 'root' },
@@ -429,28 +429,28 @@ describe('DesktopUiPreferencesService', () => {
     expect(await readDesktopUiFile()).toEqual(before)
   })
 
-  test('stores uploaded profile avatars under cc-haha profile storage', async () => {
+  test('stores uploaded profile avatars under haha profile storage', async () => {
     const service = new DesktopUiPreferencesService()
     const after = await service.updateProfileAvatar(new Uint8Array([137, 80, 78, 71]), 'image/png')
 
     expect(after.profile.avatarFile).toBe('profile/avatar.png')
     expect(typeof after.profile.avatarUpdatedAt).toBe('string')
 
-    const avatar = await fs.readFile(path.join(tmpDir, 'cc-haha', 'profile', 'avatar.png'))
+    const avatar = await fs.readFile(path.join(tmpDir, 'haha', 'profile', 'avatar.png'))
     expect([...avatar]).toEqual([137, 80, 78, 71])
   })
 
   test('clears only managed profile avatar files', async () => {
     const service = new DesktopUiPreferencesService()
     await service.updateProfileAvatar(new Uint8Array([137, 80, 78, 71]), 'image/png')
-    await fs.writeFile(path.join(tmpDir, 'cc-haha', 'profile', 'local-note.txt'), 'keep me', 'utf-8')
+    await fs.writeFile(path.join(tmpDir, 'haha', 'profile', 'local-note.txt'), 'keep me', 'utf-8')
 
     const after = await service.clearProfileAvatar()
 
     expect(after.profile.avatarFile).toBeNull()
     expect(after.profile.avatarUpdatedAt).toBeNull()
-    await expect(fs.readFile(path.join(tmpDir, 'cc-haha', 'profile', 'avatar.png'))).rejects.toThrow()
-    await expect(fs.readFile(path.join(tmpDir, 'cc-haha', 'profile', 'local-note.txt'), 'utf-8')).resolves.toBe('keep me')
+    await expect(fs.readFile(path.join(tmpDir, 'haha', 'profile', 'avatar.png'))).rejects.toThrow()
+    await expect(fs.readFile(path.join(tmpDir, 'haha', 'profile', 'local-note.txt'), 'utf-8')).resolves.toBe('keep me')
   })
 
   test('rejects unsupported or oversized profile avatars', async () => {
@@ -465,7 +465,7 @@ describe('desktop UI preferences API', () => {
   beforeEach(setup)
   afterEach(teardown)
 
-  test('persists sidebar preferences under cc-haha desktop-ui.json', async () => {
+  test('persists sidebar preferences under haha desktop-ui.json', async () => {
     const putReq = makeRequest('PUT', '/api/desktop-ui/preferences/sidebar', {
       projectOrder: ['/workspace/beta', '/workspace/alpha'],
       pinnedProjects: ['/workspace/beta'],
@@ -483,8 +483,8 @@ describe('desktop UI preferences API', () => {
       preferences: {
         schemaVersion: 4,
         profile: {
-          displayName: 'cc-haha',
-          subtitle: 'github.com/NanmiCoder/cc-haha',
+          displayName: 'haha',
+          subtitle: 'github.com/NanmiCoder/__KEEP_HAHA__',
           avatarFile: null,
           avatarUpdatedAt: null,
         },
@@ -509,8 +509,8 @@ describe('desktop UI preferences API', () => {
       preferences: {
         schemaVersion: 4,
         profile: {
-          displayName: 'cc-haha',
-          subtitle: 'github.com/NanmiCoder/cc-haha',
+          displayName: 'haha',
+          subtitle: 'github.com/NanmiCoder/__KEEP_HAHA__',
           avatarFile: null,
           avatarUpdatedAt: null,
         },

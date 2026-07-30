@@ -6,9 +6,9 @@
 import { Database } from 'bun:sqlite'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
+import { resolveHahaDataDir } from './ccHahaPaths.js'
 
-export const WEB_CONTROL_SCHEMA_VERSION = 2
+export const WEB_CONTROL_SCHEMA_VERSION = 5
 export const WEB_CONTROL_DB_FILENAME = 'web-control-v1.sqlite'
 
 export type WebControlDatabase = {
@@ -21,9 +21,7 @@ export type WebControlDatabase = {
 let singleton: WebControlDatabase | null = null
 
 export function resolveWebControlDataDir(override?: string): string {
-  if (override?.trim()) return override.trim()
-  if (process.env.CC_HAHA_DATA_DIR?.trim()) return process.env.CC_HAHA_DATA_DIR.trim()
-  return join(getClaudeConfigHomeDir(), 'cc-haha')
+  return resolveHahaDataDir(override)
 }
 
 export function resolveWebControlDatabasePath(dataDir?: string): string {
@@ -93,6 +91,70 @@ function migrateWebControlSchema(database: Database): void {
 
     CREATE INDEX IF NOT EXISTS idx_presence_source_active
       ON presence(source, last_active_at);
+
+    -- Brute-force lockout: one row per client key (fp:… or ip:…).
+    CREATE TABLE IF NOT EXISTS auth_lockout (
+      client_key TEXT PRIMARY KEY NOT NULL,
+      fail_count INTEGER NOT NULL DEFAULT 0,
+      locked_until TEXT,
+      last_fail_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_auth_lockout_locked
+      ON auth_lockout(locked_until);
+
+    -- Agent CLI prefs + install/upgrade jobs (schema v4)
+    CREATE TABLE IF NOT EXISTS agent_cli_prefs (
+      key TEXT PRIMARY KEY NOT NULL,
+      value TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS agent_cli_jobs (
+      id TEXT PRIMARY KEY NOT NULL,
+      cli_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      scope TEXT NOT NULL,
+      status TEXT NOT NULL,
+      log TEXT,
+      error TEXT,
+      version TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_agent_cli_jobs_status
+      ON agent_cli_jobs(status, updated_at);
+
+    -- Non-Claude Agent CLI sessions + messages (schema v5)
+    CREATE TABLE IF NOT EXISTS agent_cli_sessions (
+      id TEXT PRIMARY KEY NOT NULL,
+      cli_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      work_dir TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      modified_at TEXT NOT NULL,
+      message_count INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'idle',
+      last_error TEXT,
+      meta_json TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_agent_cli_sessions_cli_mod
+      ON agent_cli_sessions(cli_id, modified_at);
+
+    CREATE TABLE IF NOT EXISTS agent_cli_messages (
+      id TEXT PRIMARY KEY NOT NULL,
+      session_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      timestamp TEXT NOT NULL,
+      FOREIGN KEY (session_id) REFERENCES agent_cli_sessions(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_agent_cli_messages_session
+      ON agent_cli_messages(session_id, timestamp);
   `)
 
   // v1 → v2: password-only admin rows gain a username (default "admin").

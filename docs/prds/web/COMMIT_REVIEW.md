@@ -17,20 +17,20 @@
 
 - `bin/claude-haha-web`, `bin/claude-haha-web.ts`
 - `Dockerfile.web`, `docker-compose.web.yml`
-- `.npmrc`, `desktop/.npmrc`, `desktop/pnpm-workspace.yaml`
+- `.npmrc`, `web/.npmrc`, `web/pnpm-workspace.yaml`
 - `pnpm-lock.yaml`（根目录）
 - `scripts/check-no-electron.mjs`
 - `docs/prds/web/*`（设计 / 计划 / 部署 / 进度）
 - `src/server/api/auth.ts`, `system.ts`, `adapterProcess.ts`
 - `src/server/services/webAuthService.ts`, `webControlDb.ts`, `webPresenceService.ts`, `webAdapterHost.ts`
 - `src/server/__tests__/web-control-db.test.ts`
-- `desktop/src/components/auth/AdminAuthGate.tsx`
-- `desktop/src/pages/SystemSettings.tsx`
+- `web/src/components/auth/AdminAuthGate.tsx`
+- `web/src/pages/SystemSettings.tsx`
 
 ### 修改
 
 - `package.json`（`packageManager`、`web:*`、`claude-haha-web` bin）
-- `desktop/package.json`（剥离 Electron 依赖）
+- `web/package.json`（剥离 Electron 依赖）
 - SPA：`App.tsx`, `main.tsx`, `AppShell`, `Settings`, `settingsStore`, `electronHost` stub 等
 - Server：`index.ts`, `router.ts`, `middleware/auth|cors`, `api/adapters.ts`
 - `README.md` / `README.zh-CN.md` / `AGENTS.md`
@@ -38,15 +38,15 @@
 
 ### 删除（web 产品路径）
 
-- 整个 `desktop/electron/**`
-- 整个 `desktop/src-tauri/**`
+- 整个 `web/electron/**`
+- 整个 `web/src-tauri/**`
 
 ## 勿提交（已 ignore）
 
 | 路径 | 原因 |
 |------|------|
-| `node_modules/`, `desktop/node_modules/` | 依赖 |
-| `desktop/dist/` | SPA 构建产物 |
+| `node_modules/`, `web/node_modules/` | 依赖 |
+| `dist/` | SPA 构建产物（仓库根） |
 | `.codegraph/`, `.omc/`, `temp/` | 本地 agent / 草稿 |
 | `pure-web-*.png`, 根目录 `/*.png` | 本地截图 |
 | `.env` | 密钥 |
@@ -67,7 +67,7 @@ and claude-haha-web CLI. Remove electron/tauri product paths.
 ```bash
 node scripts/check-no-electron.mjs
 bun test src/server/__tests__/web-control-db.test.ts
-cd desktop && pnpm run build && cd ..
+cd web && pnpm run build && cd ..
 # 可选：pnpm run web:start → 浏览器 setup/login
 git status --short
 git diff --check

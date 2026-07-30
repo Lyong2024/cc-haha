@@ -8,14 +8,14 @@ describe('evaluateChangePolicy', () => {
   test('blocks CLI core changes without an override label', () => {
     const result = evaluateChangePolicy([
       'src/commands/help.ts',
-      'desktop/src/pages/Settings.tsx',
+      'web/src/pages/Settings.tsx',
     ])
 
     expect(result.blocked).toBe(true)
     expect(result.areas).toContain('cli-core')
     expect(result.areas).toContain('desktop')
     expect(result.areaLabels).toContain('area:cli-core')
-    expect(result.areaLabels).toContain('area:desktop')
+    expect(result.areaLabels).toContain('area:web')
     expect(result.cliCoreFiles).toEqual(['src/commands/help.ts'])
   })
 
@@ -48,7 +48,7 @@ describe('evaluateChangePolicy', () => {
 
   test('routes desktop and server changes without escalating renderer code to native packaging', () => {
     const result = evaluateChangePolicy([
-      'desktop/src/pages/Settings.tsx',
+      'web/src/pages/Settings.tsx',
       'src/server/ws/handler.ts',
     ])
 
@@ -75,8 +75,8 @@ describe('evaluateChangePolicy', () => {
 
   test('allows production changes when matching tests are included', () => {
     const result = evaluateChangePolicy([
-      'desktop/src/pages/Settings.tsx',
-      'desktop/src/pages/Settings.test.tsx',
+      'web/src/pages/Settings.tsx',
+      'web/src/pages/Settings.test.tsx',
     ])
 
     expect(result.blocked).toBe(false)
@@ -85,8 +85,8 @@ describe('evaluateChangePolicy', () => {
 
   test('routes Electron and packaging changes to the native lane', () => {
     const result = evaluateChangePolicy([
-      'desktop/electron/main.ts',
-      'desktop/electron/main.test.ts',
+      'web/electron/main.ts',
+      'web/electron/main.test.ts',
     ])
 
     expect(result.checks.desktop).toBe(false)
@@ -106,8 +106,8 @@ describe('evaluateChangePolicy', () => {
 
   test('routes persistence and policy changes to their dedicated checks', () => {
     const result = evaluateChangePolicy([
-      'desktop/src/lib/persistenceMigrations.ts',
-      'desktop/src/lib/persistenceMigrations.test.ts',
+      'web/src/lib/persistenceMigrations.ts',
+      'web/src/lib/persistenceMigrations.test.ts',
       '.github/workflows/pr-quality.yml',
     ])
 
@@ -142,7 +142,7 @@ describe('evaluateChangePolicy', () => {
       'AGENTS.md',
       '.github/AGENTS.md',
       'src/AGENTS.md',
-      'desktop/AGENTS.md',
+      'web/AGENTS.md',
       'adapters/AGENTS.md',
       'docs/AGENTS.md',
     ])
@@ -158,8 +158,8 @@ describe('evaluateChangePolicy', () => {
 
   test('does not require a test file for non-executable desktop assets', () => {
     const result = evaluateChangePolicy([
-      'desktop/src/styles/chat.css',
-      'desktop/src/assets/logo.svg',
+      'web/src/styles/chat.css',
+      'web/src/assets/logo.svg',
     ])
 
     expect(result.blocked).toBe(false)
@@ -221,12 +221,12 @@ describe('evaluateChangePolicy', () => {
 
   test('normalizes relative and windows-style paths before classification', () => {
     const result = evaluateChangePolicy([
-      './desktop\\src\\pages\\Settings.tsx',
-      './desktop\\src\\pages\\Settings.test.tsx',
+      './web\\src\\pages\\Settings.tsx',
+      './web\\src\\pages\\Settings.test.tsx',
       './scripts\\quality-gate\\coverage.ts',
     ])
 
-    expect(result.files).toContain('desktop/src/pages/Settings.tsx')
+    expect(result.files).toContain('web/src/pages/Settings.tsx')
     expect(result.files).toContain('scripts/quality-gate/coverage.ts')
     expect(result.areas).toContain('desktop')
     expect(result.checks.coverage).toBe(true)
@@ -239,7 +239,7 @@ describe('evaluateChangePolicy', () => {
       const filesPath = join(dir, 'files.txt')
       const labelsPath = join(dir, 'labels.txt')
       const outputPath = join(dir, 'github-output.txt')
-      writeFileSync(filesPath, 'desktop/src/pages/Settings.tsx\n')
+      writeFileSync(filesPath, 'web/src/pages/Settings.tsx\n')
       writeFileSync(labelsPath, '')
 
       const proc = Bun.spawn([

@@ -66,8 +66,10 @@ async function resolveH5DistDir(): Promise<string | null> {
     process.env.CLAUDE_APP_ROOT
       ? path.resolve(process.env.CLAUDE_APP_ROOT, 'dist')
       : undefined,
-    path.resolve(process.cwd(), 'desktop', 'dist'),
+    // Pure-web default: repo-root dist/
     path.resolve(process.cwd(), 'dist'),
+    // Legacy fallback (pre root-dist layout)
+    path.resolve(process.cwd(), 'desktop', 'dist'),
   ].filter((candidate): candidate is string => !!candidate)
 
   for (const candidate of candidates) {

@@ -425,7 +425,7 @@ export function getUserType(): string {
 
 function getEntrypoint(): string | undefined {
   return (
-    process.env.CC_HAHA_TRANSCRIPT_ENTRYPOINT?.trim() ||
+    process.env.HAHA_TRANSCRIPT_ENTRYPOINT?.trim() ||
     process.env.CLAUDE_CODE_ENTRYPOINT
   )
 }

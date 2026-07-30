@@ -453,7 +453,7 @@ export async function executeDesktopSmoke(
     process.platform === 'win32' ? 'vite.cmd' : 'vite',
   )
   const vite = Bun.spawn([viteExecutable, '--host', '127.0.0.1', '--port', String(vitePort), '--strictPort'], {
-    cwd: join(rootDir, 'desktop'),
+    cwd: join(rootDir, 'web'),
     env: {
       ...process.env,
       VITE_DESKTOP_SERVER_URL: baseUrl,
@@ -490,15 +490,15 @@ export async function executeDesktopSmoke(
       timeoutMs: 30_000,
     }, browserStepContext)
     const browserSetup = [
-      `localStorage.setItem('cc-haha-open-tabs', ${JSON.stringify(JSON.stringify({
+      `localStorage.setItem('haha-open-tabs', ${JSON.stringify(JSON.stringify({
         openTabs: [{ sessionId: session.sessionId, title: 'Desktop Smoke', type: 'session' }],
         activeTabId: session.sessionId,
       }))})`,
       runtimeSelection
-        ? `localStorage.setItem('cc-haha-session-runtime', ${JSON.stringify(JSON.stringify({
+        ? `localStorage.setItem('haha-session-runtime', ${JSON.stringify(JSON.stringify({
           [session.sessionId]: runtimeSelection,
         }))})`
-        : `localStorage.removeItem('cc-haha-session-runtime')`,
+        : `localStorage.removeItem('haha-session-runtime')`,
     ]
     await runBrowserStep('eval', ['eval', browserSetup.join(';')], {
       cwd: rootDir,

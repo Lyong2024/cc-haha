@@ -69,7 +69,7 @@ describe('release desktop workflow', () => {
         expect(workflow).toContain(electronBuilderCli)
       }
       expect(workflow).toContain('smoke_platform')
-      expect(workflow).toContain('bun run test:package-smoke --platform ${{ matrix.smoke_platform }} --arch ${{ matrix.arch }} --package-kind release --artifacts-dir desktop/build-artifacts/electron')
+      expect(workflow).toContain('bun run test:package-smoke --platform ${{ matrix.smoke_platform }} --arch ${{ matrix.arch }} --package-kind release --artifacts-dir web/build-artifacts/electron')
       expect(workflow).not.toContain('tauri-apps/tauri-action@v0')
     }
   })
@@ -101,7 +101,7 @@ describe('release desktop workflow', () => {
         "if: matrix.smoke_platform == 'windows' && matrix.arch == 'x64'",
       )
       expect(smokeStep, workflowPath).toContain('working-directory: desktop')
-      expect(smokeStep, workflowPath).toContain("CC_HAHA_COMPILED_SIDECAR_SMOKE_STARTS: '20'")
+      expect(smokeStep, workflowPath).toContain("HAHA_COMPILED_SIDECAR_SMOKE_STARTS: '20'")
       expect(smokeStep, workflowPath).toContain('bun run test:compiled-sidecar-smoke')
       expect(workflow.indexOf('Build sidecars'), workflowPath).toBeLessThan(
         workflow.indexOf('Verify compiled Windows sidecar startup'),
@@ -147,7 +147,7 @@ describe('release desktop workflow', () => {
   })
 
   test('desktop package includes Linux deb metadata required by electron-builder', () => {
-    const desktopPackage = JSON.parse(readFileSync('desktop/package.json', 'utf8')) as {
+    const desktopPackage = JSON.parse(readFileSync('web/package.json', 'utf8')) as {
       description?: string
       homepage?: string
       author?: {
@@ -162,7 +162,7 @@ describe('release desktop workflow', () => {
     }
 
     expect(desktopPackage.description).toBeTruthy()
-    expect(desktopPackage.homepage).toBe('https://github.com/NanmiCoder/cc-haha')
+    expect(desktopPackage.homepage).toBe('https://github.com/NanmiCoder/__KEEP_HAHA__')
     expect(desktopPackage.author?.name).toBe('NanmiCoder')
     expect(desktopPackage.author?.email).toBe('relakkes@gmail.com')
     expect(desktopPackage.build?.linux?.maintainer).toBe('NanmiCoder <relakkes@gmail.com>')
@@ -183,7 +183,7 @@ describe('release desktop workflow', () => {
     expect(workflow).toContain('notarize_macos:')
     expect(workflow).toContain("description: 'Notarize macOS artifacts'")
     expect(gatekeeperStep).toContain("if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed == 'true' && (github.event_name != 'workflow_dispatch' || inputs.notarize_macos == true)")
-    expect(gatekeeperStep).toContain('bun run test:package-smoke --platform macos --arch ${{ matrix.arch }} --package-kind release --artifacts-dir desktop/build-artifacts/electron --require-macos-gatekeeper')
+    expect(gatekeeperStep).toContain('bun run test:package-smoke --platform macos --arch ${{ matrix.arch }} --package-kind release --artifacts-dir web/build-artifacts/electron --require-macos-gatekeeper')
     expect(notarizationWarningStep).toContain("if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed == 'true' && github.event_name == 'workflow_dispatch' && inputs.notarize_macos == false")
     expect(notarizationWarningStep).toContain('Developer ID signed but not notarized')
     expect(unsignedWarningStep).toContain("if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed != 'true'")
@@ -360,7 +360,7 @@ describe('release desktop workflow', () => {
     expect(publishJob).toContain('artifacts/release-assets/**/*.rpm')
     expect(publishJob).toContain('artifacts/release-assets/**/*.blockmap')
     expect(publishJob).toContain('artifacts/update-metadata-standard/*.yml')
-    expect(publishJob).toContain('desktop/scripts/install-macos-unsigned.sh')
+    expect(publishJob).toContain('web/scripts/install-macos-unsigned.sh')
     expect(publishJob).toContain('draft: true')
     expect(publishJob).toContain('Publish GitHub release after complete upload')
     expect(publishJob).toContain("if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.draft == false)")
@@ -387,7 +387,7 @@ describe('release desktop workflow', () => {
   })
 
   test('release matrix asset basenames remain unique when final artifacts are flattened', () => {
-    const desktopPackage = JSON.parse(readFileSync('desktop/package.json', 'utf8')) as {
+    const desktopPackage = JSON.parse(readFileSync('web/package.json', 'utf8')) as {
       version: string
       build: {
         artifactName: string
@@ -492,7 +492,7 @@ describe('release desktop workflow', () => {
   })
 
   test('Electron Builder publish config does not rely on git remote autodetection', () => {
-    const desktopPackage = JSON.parse(readFileSync('desktop/package.json', 'utf8')) as {
+    const desktopPackage = JSON.parse(readFileSync('web/package.json', 'utf8')) as {
       build: {
         publish?: Array<{ provider?: string, owner?: string, repo?: string }>
         mac?: { publish?: unknown }
@@ -505,7 +505,7 @@ describe('release desktop workflow', () => {
       {
         provider: 'github',
         owner: 'NanmiCoder',
-        repo: 'cc-haha',
+        repo: 'haha',
       },
     ])
     expect(desktopPackage.build.mac?.publish).toBeUndefined()
@@ -514,7 +514,7 @@ describe('release desktop workflow', () => {
   })
 
   test('Electron Builder macOS config keeps the signed auto-update contract', () => {
-    const desktopPackage = JSON.parse(readFileSync('desktop/package.json', 'utf8')) as {
+    const desktopPackage = JSON.parse(readFileSync('web/package.json', 'utf8')) as {
       build: {
         mac?: {
           target?: string[]
@@ -539,7 +539,7 @@ describe('release desktop workflow', () => {
   })
 
   test('Windows NSIS installer lets users choose the install directory', () => {
-    const desktopPackage = JSON.parse(readFileSync('desktop/package.json', 'utf8')) as {
+    const desktopPackage = JSON.parse(readFileSync('web/package.json', 'utf8')) as {
       build: {
         nsis?: {
           oneClick?: boolean
@@ -553,7 +553,7 @@ describe('release desktop workflow', () => {
   })
 
   test('Windows NSIS installer recovers only registered legacy install-directory data', () => {
-    const desktopPackage = JSON.parse(readFileSync('desktop/package.json', 'utf8')) as {
+    const desktopPackage = JSON.parse(readFileSync('web/package.json', 'utf8')) as {
       scripts?: Record<string, string>
       build: {
         nsis?: {
@@ -565,29 +565,29 @@ describe('release desktop workflow', () => {
     expect(desktopPackage.build.nsis?.include).toBe('build/installer.nsh')
     expect(desktopPackage.scripts?.['test:windows-storage-recovery']).toContain('-SelfTest')
 
-    const installerHook = readFileSync('desktop/build/installer.nsh', 'utf8')
-    const recoveryHelper = readFileSync('desktop/build/recover-legacy-install-data.ps1', 'utf8')
+    const installerHook = readFileSync('web/build/installer.nsh', 'utf8')
+    const recoveryHelper = readFileSync('web/build/recover-legacy-install-data.ps1', 'utf8')
     expect(installerHook).toContain('!macro customInit')
     expect(installerHook).toContain('!macro customCheckAppRunning')
     expect(installerHook).toContain('!macro customPageAfterChangeDir')
-    expect(installerHook).toContain('UAC_AsUser_Call Function CcHahaRecoverLegacy')
+    expect(installerHook).toContain('UAC_AsUser_Call Function HahaRecoverLegacy')
     expect(installerHook).toContain('${UAC_IsInnerInstance}')
     expect(installerHook).toContain('recover-legacy-install-data.ps1')
     expect(installerHook).toContain('ReadRegStr $4 HKCU "${INSTALL_REGISTRY_KEY}" InstallLocation')
     expect(installerHook).toContain('ReadRegStr $5 HKLM "${INSTALL_REGISTRY_KEY}" InstallLocation')
-    expect(installerHook).toContain('Function CcHahaUninstallerParent')
-    expect(installerHook).toContain('Function CcHahaFinalInstallDir')
+    expect(installerHook).toContain('Function HahaUninstallerParent')
+    expect(installerHook).toContain('Function HahaFinalInstallDir')
     expect(installerHook).toContain('HKCU "${UNINSTALL_REGISTRY_KEY}" UninstallString')
     expect(installerHook).toContain('HKLM "${UNINSTALL_REGISTRY_KEY}" UninstallString')
     expect(installerHook).toContain('UNINSTALL_REGISTRY_KEY_2')
     expect(installerHook).toContain('ReadEnvStr $2 APPDATA')
     expect(installerHook).toContain('ReadEnvStr $3 USERPROFILE')
     expect(installerHook).toContain('ReadEnvStr $6 CLAUDE_CONFIG_DIR')
-    expect(installerHook).toContain('ReadEnvStr $7 CC_HAHA_APP_PORTABLE_DIR')
+    expect(installerHook).toContain('ReadEnvStr $7 HAHA_APP_PORTABLE_DIR')
     expect(installerHook).toContain('No registered installation needs legacy data recovery')
-    expect(installerHook).toContain('Var ccHahaPerUserInstallLocation')
-    expect(installerHook).toContain('Var ccHahaPerMachineInstallLocation')
-    expect(installerHook).toMatch(/!macro CcHahaRunLegacyRecovery[\s\S]*ReadRegStr \$ccHahaPerUserInstallLocation[\s\S]*\$ccHahaPerUserUninstallString == ""[\s\S]*No registered installation needs legacy data recovery[\s\S]*Call CcHahaRecoverLegacy/)
+    expect(installerHook).toContain('Var HahaPerUserInstallLocation')
+    expect(installerHook).toContain('Var HahaPerMachineInstallLocation')
+    expect(installerHook).toMatch(/!macro HahaRunLegacyRecovery[\s\S]*ReadRegStr \$HahaPerUserInstallLocation[\s\S]*\$HahaPerUserUninstallString == ""[\s\S]*No registered installation needs legacy data recovery[\s\S]*Call HahaRecoverLegacy/)
     expect(installerHook).toContain('SetErrorLevel 20')
     expect(installerHook).toContain('/SD IDOK')
     expect(installerHook).toContain('Quit')
@@ -626,7 +626,7 @@ describe('release desktop workflow', () => {
   test('Windows build and release jobs execute helper and compiled-installer smoke tests', () => {
     const devWorkflow = readFileSync('.github/workflows/build-desktop-dev.yml', 'utf8')
     const releaseWorkflow = readFileSync('.github/workflows/release-desktop.yml', 'utf8')
-    const installerSmoke = readFileSync('desktop/scripts/windows-installer-smoke.ps1', 'utf8')
+    const installerSmoke = readFileSync('web/scripts/windows-installer-smoke.ps1', 'utf8')
 
     for (const workflow of [devWorkflow, releaseWorkflow]) {
       expect(workflow).toContain("if: matrix.smoke_platform == 'windows'")

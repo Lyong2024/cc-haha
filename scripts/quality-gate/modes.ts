@@ -16,9 +16,9 @@ export function currentReleaseArtifactsDir(
   platform: NodeJS.Platform = process.platform,
   arch: NodeJS.Architecture = process.arch,
 ) {
-  if (platform === 'darwin') return arch === 'x64' ? 'desktop/build-artifacts/macos-x64' : 'desktop/build-artifacts/macos-arm64'
-  if (platform === 'win32') return arch === 'arm64' ? 'desktop/build-artifacts/windows-arm64' : 'desktop/build-artifacts/windows-x64'
-  if (platform === 'linux') return arch === 'arm64' ? 'desktop/build-artifacts/linux-arm64' : 'desktop/build-artifacts/linux-x64'
+  if (platform === 'darwin') return arch === 'x64' ? 'web/build-artifacts/macos-x64' : 'web/build-artifacts/macos-arm64'
+  if (platform === 'win32') return arch === 'arm64' ? 'web/build-artifacts/windows-arm64' : 'web/build-artifacts/windows-x64'
+  if (platform === 'linux') return arch === 'arm64' ? 'web/build-artifacts/linux-arm64' : 'web/build-artifacts/linux-x64'
   return null
 }
 
@@ -48,11 +48,11 @@ export function lanesForMode(mode: QualityGateMode, baselineTargets: BaselineTar
     },
     {
       id: 'desktop-checks',
-      title: 'Desktop checks',
-      description: 'Run desktop lint, Vitest, and production build when desktop paths changed.',
+      title: 'Web SPA checks',
+      description: 'Run web package lint, Vitest, and production build when web/ paths changed.',
       kind: 'command',
-      command: ['bun', 'run', 'check:desktop'],
-      impactRequiredCheck: 'bun run check:desktop',
+      command: ['bun', 'run', 'check:web'],
+      impactRequiredCheck: 'bun run check:web',
       requiredForModes: ['pr', 'release'],
       category: 'unit',
     },

@@ -1,4 +1,4 @@
-# cc-haha Pure Web 改造设计
+# haha Pure Web 改造设计
 
 > **分支**: `web`（基于 `main`）  
 > **日期**: 2026-07-29  
@@ -9,7 +9,7 @@
 
 ## 1. 背景与动机
 
-cc-haha 以 Electron 桌面为一等公民，但 **本地 Server（`src/server`）已是桌面与 H5 的共享运行时边界**。本改造将 `web` 分支做成 **纯自托管 Web 产品**：
+haha 以 Electron 桌面为一等公民，但 **本地 Server（`src/server`）已是桌面与 H5 的共享运行时边界**。本改造将 `web` 分支做成 **纯自托管 Web 产品**：
 
 - 浏览器 SPA + Bun Server + CLI 子进程
 - 单管理员强制登录
@@ -18,7 +18,7 @@ cc-haha 以 Electron 桌面为一等公民，但 **本地 Server（`src/server`�
 
 与 AionUi pure-web 的差异：
 
-| AionUi | cc-haha |
+| AionUi | haha |
 |--------|---------|
 | Gateway + aioncore | **强化 `src/server` + CLI 子进程** |
 | 四包 monorepo 拆分 | **渐进**：保留路径，删桌面壳 |
@@ -32,7 +32,7 @@ cc-haha 以 Electron 桌面为一等公民，但 **本地 Server（`src/server`�
 |--------|------|
 | 产品形态 | 自托管 Web 控制台 |
 | 交付深度 | Phase 0–3（含 IM 宿主、定时任务/用量/契约） |
-| 包结构 | 渐进演进（`desktop/src` + `src/server`） |
+| 包结构 | 渐进演进（`web/src` + `src/server`） |
 | Electron / 宠物 / Tauri | **web 分支删除** |
 | 账号 | **唯一 Admin**；强制登录；session cookie |
 | H5 Token | **不做** |
@@ -112,9 +112,9 @@ cc-haha 以 Electron 桌面为一等公民，但 **本地 Server（`src/server`�
 | 路径 | 处理 |
 |------|------|
 | `src/server/**` | 唯一宿主；增强 auth / presence / static / CLI |
-| `desktop/src/**` | Web SPA 源码（目录名可保留） |
-| `desktop/electron/**`、宠物、安装器脚本 | **删除** |
-| `desktop/src-tauri/**` | **删除** |
+| `web/src/**` | Web SPA 源码（目录名可保留） |
+| `web/electron/**`、宠物、安装器脚本 | **删除** |
+| `web/src-tauri/**` | **删除** |
 | `adapters/**` | 保留；由 server/cli 拉起；Web 设置页配置 |
 | `bin/claude-haha-web` | Web 产品 CLI |
 | `packages/*` 四包 | **本轮不做**（ADR-1） |
@@ -146,6 +146,8 @@ cc-haha 以 Electron 桌面为一等公民，但 **本地 Server（`src/server`�
 ### 5.1 模型
 
 - **唯一 Admin**，首次 `POST /api/auth/setup` 设置**账号 + 密码**（bcrypt）；登录需同时校验 username 与 password。
+- **防暴力破解**：登录失败累计 **10 次** 后，按 **浏览器指纹（FingerprintJS 开源）+ 客户端 IP** 锁定 **1 小时**（服务端 `auth_lockout` 表；429 LOCKED）。
+- 密码输入框支持显示/隐藏（眼睛图标）。
 - 日常 `login` / `logout`；Cookie：`HttpOnly` + `SameSite=Lax`（HTTPS 时 `Secure`）。
 - **所有** `/api/*`（除公开 auth 探针）、`/ws/*`、`/proxy/*` **强制 session**。
 - **无 H5 Token**；**不推荐**用模型 API Key 当登录口令。
@@ -290,7 +292,7 @@ claude-haha-web reset-password
 
 ### Docker
 
-- 镜像服务 `cc-haha-web`
+- 镜像服务 `haha-web`
 - 卷：`/data`、`/workspace`
 - env：`SERVER_HOST`、`SERVER_PORT`、data/work 路径
 
@@ -299,11 +301,11 @@ claude-haha-web reset-password
 ```bash
 # 依赖：默认 pnpm（packageManager = pnpm@11.17.0）
 pnpm install
-cd desktop && pnpm install && pnpm run build && cd ..
+cd web && pnpm install && pnpm run build && cd ..
 
 # 运行时：Bun（Server / CLI）
 pnpm run web:start
-# 或 bun run src/server/index.ts（需 CC_HAHA_WEB_AUTH=1）
+# 或 bun run src/server/index.ts（需 HAHA_WEB_AUTH=1）
 ```
 
 ---
@@ -312,8 +314,8 @@ pnpm run web:start
 
 ### ADR-1：不拆 packages 四包
 
-- **背景**：AionUi 四包清晰，但 cc-haha 已有可用 Server/UI 路径。  
-- **决策**：渐进保留 `desktop/src` + `src/server`。  
+- **背景**：AionUi 四包清晰，但 haha 已有可用 Server/UI 路径。  
+- **决策**：渐进保留 `web/src` + `src/server`。  
 - **后果**：目录名仍含 desktop；文档与 AGENTS 标明 pure-web 语义。
 
 ### ADR-2：强制 Admin Cookie，废弃 H5 Token

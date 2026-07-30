@@ -62,7 +62,7 @@ describe('resolveRootRedirect', () => {
 
   it('只动根路径，带前缀的地址一概不碰', () => {
     // 这是整个功能的安全边界：英文用户点开中文文档不该被踢走，反之亦然。
-    const cases = ['/en', '/en/', '/start', '/en/start', '/desktop/pets', '/internals']
+    const cases = ['/en', '/en/', '/start', '/en/start', '/web/pets', '/internals']
     for (const pathname of cases) {
       assert.equal(resolveRootRedirect({ languages: ['en-US'], pathname }), null, pathname)
       assert.equal(resolveRootRedirect({ languages: ['zh-CN'], pathname }), null, pathname)

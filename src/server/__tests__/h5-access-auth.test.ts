@@ -220,15 +220,15 @@ beforeEach(async () => {
   originalH5DistDir = process.env.CLAUDE_H5_DIST_DIR
   originalClaudeAppRoot = process.env.CLAUDE_APP_ROOT
   originalServerAuthRequired = process.env.SERVER_AUTH_REQUIRED
-  originalLocalAccessToken = process.env.CC_HAHA_LOCAL_ACCESS_TOKEN
-  originalPetAccessToken = process.env.CC_HAHA_PET_ACCESS_TOKEN
+  originalLocalAccessToken = process.env.HAHA_LOCAL_ACCESS_TOKEN
+  originalPetAccessToken = process.env.HAHA_PET_ACCESS_TOKEN
   originalServerPort = ProviderService.getServerPort()
   process.env.CLAUDE_CONFIG_DIR = tmpDir
   const h5DistDir = path.join(tmpDir, 'dist')
   process.env.CLAUDE_H5_DIST_DIR = h5DistDir
   delete process.env.ANTHROPIC_API_KEY
-  delete process.env.CC_HAHA_LOCAL_ACCESS_TOKEN
-  delete process.env.CC_HAHA_PET_ACCESS_TOKEN
+  delete process.env.HAHA_LOCAL_ACCESS_TOKEN
+  delete process.env.HAHA_PET_ACCESS_TOKEN
   await fs.mkdir(path.join(h5DistDir, 'assets'), { recursive: true })
   await fs.writeFile(
     path.join(h5DistDir, 'index.html'),
@@ -255,10 +255,10 @@ afterEach(async () => {
   else process.env.CLAUDE_APP_ROOT = originalClaudeAppRoot
   if (originalServerAuthRequired === undefined) delete process.env.SERVER_AUTH_REQUIRED
   else process.env.SERVER_AUTH_REQUIRED = originalServerAuthRequired
-  if (originalLocalAccessToken === undefined) delete process.env.CC_HAHA_LOCAL_ACCESS_TOKEN
-  else process.env.CC_HAHA_LOCAL_ACCESS_TOKEN = originalLocalAccessToken
-  if (originalPetAccessToken === undefined) delete process.env.CC_HAHA_PET_ACCESS_TOKEN
-  else process.env.CC_HAHA_PET_ACCESS_TOKEN = originalPetAccessToken
+  if (originalLocalAccessToken === undefined) delete process.env.HAHA_LOCAL_ACCESS_TOKEN
+  else process.env.HAHA_LOCAL_ACCESS_TOKEN = originalLocalAccessToken
+  if (originalPetAccessToken === undefined) delete process.env.HAHA_PET_ACCESS_TOKEN
+  else process.env.HAHA_PET_ACCESS_TOKEN = originalPetAccessToken
 
   await fs.rm(tmpDir, {
     recursive: true,
@@ -336,7 +336,7 @@ describe('remote H5 auth and CORS integration', () => {
     // The desktop shell injects a process token, but the browser windows it
     // opens (OAuth success pages, `/preview-fs` links) and local scripts cannot
     // carry it. Loopback must stay trusted on its own.
-    process.env.CC_HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
+    process.env.HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
     await restartRemoteServer()
 
     const tokenlessResponse = await fetch(`${baseUrl}/api/status`)
@@ -355,7 +355,7 @@ describe('remote H5 auth and CORS integration', () => {
   })
 
   test('still requires the desktop process token for the H5 control plane', async () => {
-    process.env.CC_HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
+    process.env.HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
     await restartRemoteServer()
 
     // Another browser or script on the same machine must not be able to publish
@@ -375,7 +375,7 @@ describe('remote H5 auth and CORS integration', () => {
   })
 
   test('does not extend tokenless loopback trust to cross-site subresource loads', async () => {
-    process.env.CC_HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
+    process.env.HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
     await restartRemoteServer()
 
     // A malicious page embedding `<img src="http://127.0.0.1:<port>/api/...">`
@@ -400,8 +400,8 @@ describe('remote H5 auth and CORS integration', () => {
   })
 
   test('enforces the pet bearer capability allowlist before API routing', async () => {
-    process.env.CC_HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
-    process.env.CC_HAHA_PET_ACCESS_TOKEN = 'pet-capability-secret'
+    process.env.HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
+    process.env.HAHA_PET_ACCESS_TOKEN = 'pet-capability-secret'
     await restartRemoteServer()
     const petHeaders = { Authorization: 'Bearer pet-capability-secret' }
     const privateWorkDir = path.join(tmpDir, 'private-workspace')
@@ -516,7 +516,7 @@ describe('remote H5 auth and CORS integration', () => {
   })
 
   test('keeps the host-managed provider proxy working with local auth across H5 modes', async () => {
-    process.env.CC_HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
+    process.env.HAHA_LOCAL_ACCESS_TOKEN = 'desktop-local-secret'
     await restartRemoteServer()
 
     const requestProxy = (authorized: boolean) => fetch(`${baseUrl}/proxy/v1/messages`, {

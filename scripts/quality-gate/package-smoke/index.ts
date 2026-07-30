@@ -149,7 +149,7 @@ function detectHostPlatform() {
 }
 
 function readDesktopMetadata(rootDir: string): DesktopMetadata {
-  const packageJsonPath = join(rootDir, 'desktop', 'package.json')
+  const packageJsonPath = join(rootDir, 'web', 'package.json')
   const raw = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
     version?: string
     productName?: string
@@ -838,7 +838,7 @@ export async function inspectPackagedArtifacts(rootDir: string, options: Inspect
   const resolvedRootDir = resolve(rootDir)
   const artifactsDir = options.artifactsDir
     ? resolve(resolvedRootDir, options.artifactsDir)
-    : join(resolvedRootDir, 'desktop', 'build-artifacts')
+    : join(resolvedRootDir, 'web', 'build-artifacts')
   const metadata = readDesktopMetadata(resolvedRootDir)
   const verificationMode = options.platform === 'macos' ? 'bundle-structure' : 'static-artifact'
   const packageKind = options.packageKind ?? 'auto'

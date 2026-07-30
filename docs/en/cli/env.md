@@ -73,7 +73,7 @@ See [Local Server](../internals/server.md) for `SERVER_HOST`, `SERVER_PORT`, `SE
 Desktop stores the provider index at:
 
 ```text
-~/.claude/cc-haha/providers.json
+~/.claude/haha/providers.json
 ```
 
 Provider-managed environment data is written to an isolated Haha configuration. You do not need to copy it into `~/.claude/settings.json`. When the CLI finds an active provider, it reuses its credentials, models, and protocol settings. Providers using `openai_chat` or `openai_responses` automatically use a loopback proxy.

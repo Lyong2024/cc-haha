@@ -128,7 +128,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          VERSION=$(node -p "require('./desktop/package.json').version")
+          VERSION=$(node -p "require('./web/package.json').version")
           echo "value=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Validate tag matches version
@@ -160,8 +160,8 @@ jobs:
       - name: Install root dependencies
         run: bun install
 
-      - name: Install desktop dependencies
-        working-directory: desktop
+      - name: Install web SPA dependencies
+        working-directory: web
         run: bun install
 
       - name: Install adapter dependencies
@@ -170,17 +170,17 @@ jobs:
 
       - name: Verify Windows legacy data recovery
         if: matrix.smoke_platform == 'windows'
-        working-directory: desktop
+        working-directory: web
         run: bun run test:windows-storage-recovery
 
       - name: Prepare bundled ripgrep
-        working-directory: desktop
+        working-directory: web
         env:
           SIDECAR_TARGET_TRIPLE: ${{ matrix.target_triple }}
         run: bun run prepare:ripgrep
 
       - name: Build sidecars
-        working-directory: desktop
+        working-directory: web
         env:
           BUN_INSTALL_CACHE_DIR: ${{ runner.temp }}/bun-install-cache
           SIDECAR_TARGET_TRIPLE: ${{ matrix.target_triple }}
@@ -188,20 +188,20 @@ jobs:
 
       - name: Verify compiled Windows sidecar startup
         if: matrix.smoke_platform == 'windows' && matrix.arch == 'x64'
-        working-directory: desktop
+        working-directory: web
         env:
-          CC_HAHA_COMPILED_SIDECAR_SMOKE_STARTS: '20'
+          HAHA_COMPILED_SIDECAR_SMOKE_STARTS: '20'
         run: bun run test:compiled-sidecar-smoke
 
       - name: Build renderer and Electron bundles
-        working-directory: desktop
+        working-directory: web
         run: |
           bun run build
           bun run build:electron
 
       - name: Build signed macOS Electron release artifacts
         if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed == 'true'
-        working-directory: desktop
+        working-directory: web
         timeout-minutes: 80
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -385,7 +385,7 @@ jobs:
 
       - name: Build unsigned Electron release artifacts
         if: matrix.smoke_platform != 'macos' || needs.signing-preflight.outputs.macos_signed != 'true'
-        working-directory: desktop
+        working-directory: web
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Unsigned fallback: do not pass CSC_LINK / APPLE_* / WIN_CSC_* here.
@@ -397,15 +397,15 @@ jobs:
       - name: Verify Windows installer execution
         if: matrix.smoke_platform == 'windows' && matrix.arch == 'x64'
         timeout-minutes: 10
-        working-directory: desktop
+        working-directory: web
         run: powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/windows-installer-smoke.ps1 -ArtifactsDir ./build-artifacts/electron -Arch x64
 
       - name: Verify packaged app structure
-        run: bun run test:package-smoke --platform ${{ matrix.smoke_platform }} --arch ${{ matrix.arch }} --package-kind release --artifacts-dir desktop/build-artifacts/electron
+        run: bun run test:package-smoke --platform ${{ matrix.smoke_platform }} --arch ${{ matrix.arch }} --package-kind release --artifacts-dir web/build-artifacts/electron
 
       - name: Verify macOS launch policy
         if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed == 'true' && (github.event_name != 'workflow_dispatch' || inputs.notarize_macos == true)
-        run: bun run test:package-smoke --platform macos --arch ${{ matrix.arch }} --package-kind release --artifacts-dir desktop/build-artifacts/electron --require-macos-gatekeeper
+        run: bun run test:package-smoke --platform macos --arch ${{ matrix.arch }} --package-kind release --artifacts-dir web/build-artifacts/electron --require-macos-gatekeeper
 
       - name: Warn macOS notarization skipped
         if: matrix.smoke_platform == 'macos' && needs.signing-preflight.outputs.macos_signed == 'true' && github.event_name == 'workflow_dispatch' && inputs.notarize_macos == false
@@ -417,7 +417,7 @@ jobs:
 
       - name: Validate matrix release asset set
         shell: bash
-        working-directory: desktop/build-artifacts/electron
+        working-directory: web/build-artifacts/electron
         env:
           APP_VERSION: ${{ steps.version.outputs.value }}
         run: |
@@ -487,7 +487,7 @@ jobs:
 
       - name: Namespace update metadata assets
         shell: bash
-        working-directory: desktop/build-artifacts/electron
+        working-directory: web/build-artifacts/electron
         run: |
           shopt -s nullglob
           for file in latest*.yml; do
@@ -498,7 +498,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: desktop-update-metadata-${{ matrix.label }}
-          path: desktop/build-artifacts/electron/latest*.yml
+          path: web/build-artifacts/electron/latest*.yml
           if-no-files-found: ignore
 
       - name: Upload release artifacts for final publish
@@ -506,14 +506,14 @@ jobs:
         with:
           name: desktop-release-artifacts-${{ matrix.label }}
           path: |
-            desktop/build-artifacts/electron/*.dmg
-            desktop/build-artifacts/electron/*.zip
-            desktop/build-artifacts/electron/*.exe
-            desktop/build-artifacts/electron/*.AppImage
-            desktop/build-artifacts/electron/*.deb
-            desktop/build-artifacts/electron/*.rpm
-            desktop/build-artifacts/electron/*.blockmap
-            desktop/build-artifacts/electron/*.yml
+            web/build-artifacts/electron/*.dmg
+            web/build-artifacts/electron/*.zip
+            web/build-artifacts/electron/*.exe
+            web/build-artifacts/electron/*.AppImage
+            web/build-artifacts/electron/*.deb
+            web/build-artifacts/electron/*.rpm
+            web/build-artifacts/electron/*.blockmap
+            web/build-artifacts/electron/*.yml
           if-no-files-found: error
 
   publish-release:
@@ -528,7 +528,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          VERSION=$(node -p "require('./desktop/package.json').version")
+          VERSION=$(node -p "require('./web/package.json').version")
           echo "value=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Validate tag matches version
@@ -653,7 +653,7 @@ jobs:
             artifacts/release-assets/**/*.rpm
             artifacts/release-assets/**/*.blockmap
             artifacts/update-metadata-standard/*.yml
-            desktop/scripts/install-macos-unsigned.sh
+            web/scripts/install-macos-unsigned.sh
 
       - name: Publish GitHub release after complete upload
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.draft == false)

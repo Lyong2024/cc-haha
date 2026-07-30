@@ -83,7 +83,7 @@ Authorization is the union of **Allowed Users** and paired users. When both are 
 
 Platform credentials, pairing state, and allowlists live in `~/.claude/adapters.json`; chat-to-session mappings live in `~/.claude/adapter-sessions.json`. Both stay on your machine, both contain material that can drive it, and neither should be shared. Sensitive fields are masked when the settings page reads the configuration back. Both paths follow `CLAUDE_CONFIG_DIR` when a custom data directory is active.
 
-For a full mobile interface rather than a chat window, see [H5 access](../desktop/remote.md).
+For a full mobile interface rather than a chat window, see [H5 access](../web/remote.md).
 
 ## Per-platform guides
 

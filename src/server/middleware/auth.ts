@@ -4,7 +4,7 @@
  * 本地桌面应用场景下，使用 Anthropic API Key 做简单鉴权。
  * 验证请求头中的 Authorization: Bearer <key> 与 .env 中的 ANTHROPIC_API_KEY 是否匹配。
  *
- * Pure-web path (CC_HAHA_WEB_AUTH / CC_HAHA_WEB_MODE): admin session cookie is primary.
+ * Pure-web path (HAHA_WEB_AUTH / HAHA_WEB_MODE): admin session cookie is primary.
  */
 
 import { H5AccessService } from '../services/h5AccessService.js'

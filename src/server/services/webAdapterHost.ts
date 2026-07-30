@@ -42,7 +42,7 @@ export async function startAdapter(platform: AdapterPlatform): Promise<{ ok: tru
     cwd: join(repoRoot(), 'adapters'),
     env: {
       ...process.env as Record<string, string>,
-      CC_HAHA_SKIP_DOTENV: process.env.CC_HAHA_SKIP_DOTENV || '0',
+      HAHA_SKIP_DOTENV: process.env.HAHA_SKIP_DOTENV || '0',
     },
     stdout: 'inherit',
     stderr: 'inherit',

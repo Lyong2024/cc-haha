@@ -32,7 +32,7 @@ Electron main
 - **CLI subprocess** executes model requests, tool calls, and agent orchestration.
 - **Adapter sidecar** bridges IM platform messages into the same server and CLI sessions.
 
-`desktop/src-tauri/` now only holds packaging assets and historical code. It is not the desktop runtime; Electron is the current host.
+`web/src-tauri/` now only holds packaging assets and historical code. It is not the desktop runtime; Electron is the current host.
 
 ## Current stack
 
@@ -45,18 +45,18 @@ Electron main
 | Terminal | node-pty, xterm.js | Native PTY and terminal rendering |
 | Local service | Bun, `Bun.serve` | HTTP API and WebSocket |
 
-Versions follow `desktop/package.json`. This page lists only the majors that change how the architecture reads, not the full dependency list.
+Versions follow `web/package.json`. This page lists only the majors that change how the architecture reads, not the full dependency list.
 
 ## Electron host
 
 | Path | Responsibility |
 |---|---|
-| `desktop/electron/main.ts` | Electron main entry, windows, IPC registration |
-| `desktop/electron/preload.ts` | Typed host API exposed to the main renderer |
-| `desktop/electron/preview-preload.ts` | Isolated bridge for native web preview |
-| `desktop/electron/pet-preload.ts` | Minimal bridge for pet windows |
-| `desktop/electron/ipc/` | IPC channel registration and payload validation |
-| `desktop/electron/services/` | Sidecar, update, terminal, preview, window, and proxy services |
+| `web/electron/main.ts` | Electron main entry, windows, IPC registration |
+| `web/electron/preload.ts` | Typed host API exposed to the main renderer |
+| `web/electron/preview-preload.ts` | Isolated bridge for native web preview |
+| `web/electron/pet-preload.ts` | Minimal bridge for pet windows |
+| `web/electron/ipc/` | IPC channel registration and payload validation |
+| `web/electron/services/` | Sidecar, update, terminal, preview, window, and proxy services |
 
 The renderer must not import Electron directly, and must not assemble arbitrary IPC channel names. A new native capability means updating the host contract, the main-side validation, and the related tests together.
 
@@ -73,7 +73,7 @@ The server can bind a LAN-reachable address for H5, but the desktop renderer alw
 
 ### Sidecar entry point
 
-`desktop/sidecars/claude-sidecar.ts` is the single entry point:
+`web/sidecars/claude-sidecar.ts` is the single entry point:
 
 ```text
 claude-sidecar server   --app-root <path> --host <host> --port <port>
@@ -122,7 +122,7 @@ If the server has auth enabled, the client passes the token as a connection quer
 
 ### Heartbeat and reconnect
 
-Current behavior in `desktop/src/api/websocket.ts`:
+Current behavior in `web/src/api/websocket.ts`:
 
 - Send `ping` every 30 seconds after connecting.
 - If no `pong` arrives within 10 seconds, the client closes the connection and reconnects.
@@ -193,10 +193,10 @@ Any change to a JSON shape, a `localStorage` key, or the app config layout needs
 
 ## Build and verification
 
-Desktop builds are orchestrated by scripts in `desktop/package.json`:
+Desktop builds are orchestrated by scripts in `web/package.json`:
 
 ```bash
-cd desktop
+cd web
 bun run build:sidecars
 bun run build
 bun run build:electron

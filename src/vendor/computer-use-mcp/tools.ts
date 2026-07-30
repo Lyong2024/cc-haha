@@ -14,7 +14,7 @@ import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 
 import type { CoordinateMode } from "./types.js";
 
-// See packages/desktop/computer-use-mcp/COORDINATES.md before touching any
+// See packages/web/computer-use-mcp/COORDINATES.md before touching any
 // model-facing coordinate text. Chrome's browserTools.ts:143 is the reference
 // phrasing — "pixels from the left edge", no geometry, no number to do math with.
 const COORD_DESC: Record<CoordinateMode, { x: string; y: string }> = {

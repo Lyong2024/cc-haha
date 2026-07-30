@@ -6,14 +6,14 @@ These rules apply to `docs/` changes in addition to the root instructions.
 
 Two audiences, nothing else. If a page serves neither, it does not belong here.
 
-- **People using the app** — `start/`, `desktop/`, `im/`. No prior code knowledge assumed.
+- **People using the app** — `start/`, `web/`, `im/`. No prior code knowledge assumed.
 - **People reading the source** — `internals/`, `cli/`. Architecture, implementation, contributing.
 
 Internal process artefacts (migration task lists, validation checklists, design proposals, release runbooks) are not documentation. Keep them out of `docs/`, or fold the durable part into `internals/contributing.md`.
 
 ## Structure
 
-Five top-level sections: `start/`, `desktop/`, `im/`, `cli/`, `internals/`. Adding a sixth means registering it in the `sections` array of `site/scripts/generate-docs-manifest.mjs`.
+Five top-level sections: `start/`, `web/`, `im/`, `cli/`, `internals/`. Adding a sixth means registering it in the `sections` array of `site/scripts/generate-docs-manifest.mjs`.
 
 `docs/en/` mirrors the Chinese tree file for file. Keep Chinese pages and their `docs/en/` counterparts aligned.
 
@@ -44,7 +44,7 @@ Step-by-step setup walkthroughs are the exception: `docs/im/` embeds console scr
 
 `docs/start/install.md` publishes to `/start/install`. Renaming a file changes a public URL, so add the old path to `LEGACY_ROUTES` in `site/src/content/docs.js` and to `legacyRoutes` in `site/scripts/prepare-static-output.mjs`.
 
-`/im/` is linked from inside the desktop app (`desktop/src/pages/AdapterSettings.tsx`). That route cannot move.
+`/im/` is linked from inside the desktop app (`web/src/pages/AdapterSettings.tsx`). That route cannot move.
 
 ## Checks
 

@@ -17,10 +17,10 @@ order: 14
 bun install
 ```
 
-如果改动涉及 `desktop/`，也安装桌面端依赖：
+如果改动涉及 `web/`，也安装桌面端依赖：
 
 ```bash
-cd desktop
+cd web
 bun install
 ```
 
@@ -31,7 +31,7 @@ cd adapters
 bun install
 ```
 
-不要提交本地运行产物，例如 `artifacts/quality-runs/`、`node_modules/`、`desktop/node_modules/`。
+不要提交本地运行产物，例如 `artifacts/quality-runs/`、`node_modules/`、`web/node_modules/`。
 
 ## 普通 PR 的影响面检查
 
@@ -82,7 +82,7 @@ Agent 应按这个顺序处理失败：
 1. 先看 `artifacts/quality-runs/<timestamp>/report.md` 的 Summary 和 Result Matrix，定位失败 lane。
 2. 如果是 `Path-aware PR checks` 失败，优先看是否缺同区域测试、是否动了 CLI core、是否动了 coverage policy；不要用 override 绕过普通功能 PR。
 3. 如果是 `Coverage gate` 失败，打开 `artifacts/coverage/<timestamp>/coverage-report.md` 或 `coverage-report.json`，优先修 `changedLines.failures` 和 `failures`；`targetGaps` 是技术债提示，新改动应让触达区域变好。
-4. 如果是 desktop/server/adapters/native/docs 失败，读对应 `artifacts/quality-runs/<timestamp>/logs/<lane>.log`，补测试或修构建，再跑相关窄命令。
+4. 如果是 web/server/adapters/native/docs 失败，读对应 `artifacts/quality-runs/<timestamp>/logs/<lane>.log`，补测试或修构建，再跑相关窄命令。
 5. 窄命令通过后，如果要声明 PR-ready/full validation，再跑一次 `bun run verify`。只有最终 Summary 是 `failed=0`，才可以这样声明。
 
 外部参考口径：
@@ -96,7 +96,7 @@ Agent 应按这个顺序处理失败：
 所有新功能、bugfix 和行为变化都必须带着可验证证据交付。这条规则同时约束人和 AI Coding Agent：
 
 - 先声明变更面：`desktop`、`server`、`adapter`、`native`、`docs`、`provider/runtime`、`agent-loop` 或 `release`。
-- `desktop/src`、`src/server`、`src/tools`、`src/utils`、`adapters` 下的生产代码变更必须同 PR 带同区域测试；除非维护者显式加 `allow-missing-tests`。
+- `web/src`、`src/server`、`src/tools`、`src/utils`、`adapters` 下的生产代码变更必须同 PR 带同区域测试；除非维护者显式加 `allow-missing-tests`。
 - 纯逻辑写单元测试；server/API/provider/runtime 写 API 或 request-shape 测试；桌面 UI/store/API 写 Vitest/Testing Library；跨 UI、WebSocket、provider proxy、native sidecar、发布打包的用户流程要补 E2E 或 agent-browser smoke。
 - agent loop、工具调用、provider 路由、模型选择、文件编辑、权限、会话恢复、桌面聊天改动，PR 内必须有 mock/fixture 测试；有 provider 条件时还要给 live smoke 或 baseline 证据。
 - 覆盖率是功能的一部分。本项目按 Google/Microsoft 风格执行：生成物/构建产物不计入产品覆盖率，维护中的产品区域要逐步达到 75-80%+，新增或变更的可执行生产代码行必须满足 `coverage-thresholds.json` 里的 changed-line coverage 门槛。
@@ -144,7 +144,7 @@ bun run quality:gate --mode baseline --allow-live --provider-model minimax:main:
 
 ```bash
 bun run check:server      # 服务端 API、WebSocket、provider、会话等测试
-bun run check:desktop     # 桌面端 lint、Vitest、生产构建
+bun run check:web         # Web SPA lint、Vitest、生产构建
 bun run check:adapters    # IM adapter 测试
 bun run check:native      # 桌面 sidecar、Electron host 与 package-smoke 检查
 bun run check:provider-contract # Provider/runtime/proxy 的离线契约测试
@@ -157,7 +157,7 @@ bun run check:coverage    # root、desktop、adapters 覆盖率报告和 ratchet
 
 如果只改了很窄的文件，先跑对应的定向测试即可；只有在声明 PR-ready/full validation 时才需要本地再跑 `bun run verify`，托管 CI 仍会执行所有被选中的必需 lane。
 
-生产代码改动必须带对应测试文件：`desktop/src/**`、`src/server/**`、`src/tools/**`、`src/utils/**`、`adapters/**` 变更如果没有同区域测试，会触发阻断。只有维护者确认不适合自动化测试时，才能使用 `allow-missing-tests`。覆盖率 baseline/threshold 变更同样需要维护者确认并加 `allow-coverage-baseline-change`。
+生产代码改动必须带对应测试文件：`web/src/**`、`src/server/**`、`src/tools/**`、`src/utils/**`、`adapters/**` 变更如果没有同区域测试，会触发阻断。只有维护者确认不适合自动化测试时，才能使用 `allow-missing-tests`。覆盖率 baseline/threshold 变更同样需要维护者确认并加 `allow-coverage-baseline-change`。
 
 ## 真实模型 Baseline
 
@@ -245,7 +245,7 @@ release 模式下 live lane 不允许静默跳过。缺少 provider、真实模�
 
 ## 发版与自动更新
 
-桌面端版本号的唯一来源是 `desktop/package.json`。正式发布要求版本号、Git tag 和 `release-notes/vX.Y.Z.md` 三者严格一致。
+桌面端版本号的唯一来源是 `web/package.json`。正式发布要求版本号、Git tag 和 `release-notes/vX.Y.Z.md` 三者严格一致。
 
 应用内更新由 `electron-updater` 驱动，产物托管在 GitHub Releases：
 

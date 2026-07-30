@@ -30,7 +30,7 @@ function commandList(result: ReturnType<typeof evaluateChangePolicy>) {
   }
 
   if (result.checks.desktop) {
-    commands.push('bun run check:desktop')
+    commands.push('bun run check:web')
   }
   if (result.checks.server) {
     commands.push('bun run check:server')
@@ -79,7 +79,7 @@ function changedProductionFiles(files: string[], predicate: (file: string) => bo
 
 function coverageWarnings(files: string[]) {
   const warnings: string[] = []
-  const desktopProd = changedProductionFiles(files, (file) => file.startsWith('desktop/src/'))
+  const desktopProd = changedProductionFiles(files, (file) => file.startsWith('web/src/'))
   const serverProd = changedProductionFiles(files, (file) => file.startsWith('src/server/'))
   const adapterProd = changedProductionFiles(files, (file) => file.startsWith('adapters/'))
   const agentRuntimeProd = changedProductionFiles(files, (file) => (
@@ -89,7 +89,7 @@ function coverageWarnings(files: string[]) {
     file.startsWith('src/utils/')
   ))
 
-  if (desktopProd.length > 0 && !hasMatchingTest(files, (file) => file.startsWith('desktop/src/'))) {
+  if (desktopProd.length > 0 && !hasMatchingTest(files, (file) => file.startsWith('web/src/'))) {
     warnings.push('Desktop product files changed without a desktop test file in the PR.')
   }
 
@@ -111,10 +111,10 @@ function coverageWarnings(files: string[]) {
 function riskNotes(files: string[]) {
   const notes: string[] = []
 
-  if (files.some((file) => file.startsWith('desktop/src-tauri/') || file.startsWith('desktop/electron/'))) {
+  if (files.some((file) => file.startsWith('web/src-tauri/') || file.startsWith('web/electron/'))) {
     notes.push('Desktop native host code changed: check sidecar build, Electron IPC, packaging config, and runtime smoke output closely.')
   }
-  if (files.some((file) => file.startsWith('desktop/src/stores/') || file.startsWith('desktop/src/api/'))) {
+  if (files.some((file) => file.startsWith('web/src/stores/') || file.startsWith('web/src/api/'))) {
     notes.push('Desktop state/API layer changed: verify store persistence, WebSocket behavior, and startup errors.')
   }
   if (files.some((file) => file.startsWith('src/server/ws/') || file.startsWith('src/server/services/conversation'))) {

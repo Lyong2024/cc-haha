@@ -2241,7 +2241,7 @@ describe('WebSocket Chat Integration', () => {
   })
 
   it('refreshes the first-turn AI title from the completed assistant transcript', async () => {
-    const providerConfigPath = path.join(tmpDir, 'cc-haha', 'providers.json')
+    const providerConfigPath = path.join(tmpDir, 'haha', 'providers.json')
     const originalProviderConfig = await fs.readFile(providerConfigPath, 'utf-8').catch(() => null)
     const upstreamInputs: string[] = []
     const titleModelServer = Bun.serve({
@@ -2802,7 +2802,7 @@ describe('WebSocket Chat Integration', () => {
   })
 
   it('should keep a long desktop session alive in a /tmp project across engineering turns', async () => {
-    const projectDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cc-haha-issue247-project-'))
+    const projectDir = await fs.mkdtemp(path.join(os.tmpdir(), 'haha-issue247-project-'))
     let sessionId: string | undefined
 
     try {
@@ -3451,21 +3451,30 @@ describe('WebSocket Chat Integration', () => {
       }))
       releaseFirstStart()
 
-      await waitUntil(async () => startCalls.length >= 2, `runtime restart for ${sessionId}`)
+      // prewarm_session and set_runtime_config are concurrent. Depending on
+      // whether the override lands before getRuntimeSettings(), the first
+      // start may already carry the provider, or a follow-up restart may.
+      await waitUntil(
+        async () => startCalls.some((call) =>
+          call.sessionId === sessionId
+          && call.options?.providerId === provider.id
+          && call.options?.model === 'late-sonnet'
+        ),
+        `runtime config applied for ${sessionId}`,
+      )
       await waitUntil(
         async () => messages.some((msg) => msg.type === 'status' && msg.state === 'idle'),
         `runtime restart idle status for ${sessionId}`,
       )
 
-      expect(startCalls[0]).toMatchObject({ sessionId })
-      expect(startCalls[0]?.options?.providerId).toBeNull()
-      expect(startCalls[1]).toMatchObject({
-        sessionId,
-        options: {
-          providerId: provider.id,
-          model: 'late-sonnet',
-        },
-      })
+      const applied = startCalls.filter((call) =>
+        call.sessionId === sessionId
+        && call.options?.providerId === provider.id
+        && call.options?.model === 'late-sonnet'
+      )
+      expect(applied.length).toBeGreaterThanOrEqual(1)
+      // Must not leave the first start killed mid-startup without a recovery start.
+      expect(startCalls.every((call) => call.sessionId === sessionId)).toBe(true)
     } finally {
       ws.close()
       conversationService.startSession = originalStartSession
@@ -4195,28 +4204,41 @@ describe('WebSocket Chat Integration', () => {
                 type: 'set_permission_mode',
                 mode: 'bypassPermissions',
               }))
-              await new Promise((resolve) => setTimeout(resolve, 25))
-              const inspectionRes = await fetch(`${baseUrl}/api/sessions/${sessionId}/inspection?includeContext=0`)
-              if (!inspectionRes.ok) {
+              // Inspect immediately (no long delay) so the assertion completes
+              // before message_complete can race-resolve the outer promise.
+              try {
+                const inspectionRes = await fetch(
+                  `${baseUrl}/api/sessions/${sessionId}/inspection?includeContext=0`,
+                )
+                if (!inspectionRes.ok) {
+                  clearTimeout(timeout)
+                  ws.close()
+                  reject(new Error(`Inspection failed while permission switch was deferred: ${inspectionRes.status}`))
+                  return
+                }
+                const inspectionBody = await inspectionRes.json() as { status?: { permissionMode?: string } }
+                if (inspectionBody.status?.permissionMode !== 'default') {
+                  clearTimeout(timeout)
+                  ws.close()
+                  reject(new Error(`Deferred permission switch was exposed before restart: ${inspectionBody.status?.permissionMode}`))
+                  return
+                }
+                deferredInspectionChecked = true
+                if (modeConfirmed && turnComplete) {
+                  clearTimeout(timeout)
+                  resolve()
+                }
+              } catch (error) {
                 clearTimeout(timeout)
                 ws.close()
-                reject(new Error(`Inspection failed while permission switch was deferred: ${inspectionRes.status}`))
-                return
-              }
-              const inspectionBody = await inspectionRes.json() as { status?: { permissionMode?: string } }
-              deferredInspectionChecked = true
-              if (inspectionBody.status?.permissionMode !== 'default') {
-                clearTimeout(timeout)
-                ws.close()
-                reject(new Error(`Deferred permission switch was exposed before restart: ${inspectionBody.status?.permissionMode}`))
-                return
+                reject(error instanceof Error ? error : new Error(String(error)))
               }
               return
             }
 
             if (msg.type === 'permission_mode_changed' && msg.mode === 'bypassPermissions') {
               modeConfirmed = true
-              if (turnComplete) {
+              if (turnComplete && deferredInspectionChecked) {
                 clearTimeout(timeout)
                 resolve()
               }
@@ -4226,7 +4248,7 @@ describe('WebSocket Chat Integration', () => {
             if (msg.type === 'message_complete' && switchTriggered && !turnComplete) {
               turnComplete = true
               expect(startCalls).toHaveLength(1)
-              if (modeConfirmed) {
+              if (modeConfirmed && deferredInspectionChecked) {
                 clearTimeout(timeout)
                 resolve()
               }

@@ -15,18 +15,18 @@
 
 ### T0.2 删除桌面壳路径
 
-- [ ] 删除 `desktop/electron/**`（含 preload/ipc/services）
+- [ ] 删除 `web/electron/**`（含 preload/ipc/services）
 - [ ] 删除宠物相关 renderer/preload/资源入口（产品路径）
-- [ ] 删除 `desktop/src-tauri/**`
-- [ ] 清理 `desktop/package.json`：去掉 electron 主入口与 electron 脚本依赖（保留 vite SPA 构建）
+- [ ] 删除 `web/src-tauri/**`
+- [ ] 清理 `web/package.json`：去掉 electron 主入口与 electron 脚本依赖（保留 vite SPA 构建）
 - **验收**: `scripts/check-no-electron.mjs`；web 构建不引用 electron
 
 ### T0.3 SPA 纯 Web 启动
 
 - [ ] `browserHost` 为唯一 host；same-origin 解析 Server
-- [ ] Server `staticH5` 继续托管 `desktop/dist`
+- [x] Server `staticH5` 托管仓库根 `dist/`（兼容 `web/dist`）
 - [ ] 去掉依赖 Electron 注入 local access token 的硬路径（改 cookie 会话，P1 接完）
-- **验收**: `cd desktop && pnpm run build`；Server 返回 `index.html`
+- **验收**: `cd web && pnpm run build`；Server 返回 `index.html`
 
 ### T0.4 控制面 SQLite
 

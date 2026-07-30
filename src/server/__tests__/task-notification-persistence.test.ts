@@ -14,7 +14,7 @@ describe('background task notification persistence', () => {
 
   beforeEach(async () => {
     previousConfigDir = process.env.CLAUDE_CONFIG_DIR
-    configDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cc-haha-task-notification-'))
+    configDir = await fs.mkdtemp(path.join(os.tmpdir(), 'haha-task-notification-'))
     process.env.CLAUDE_CONFIG_DIR = configDir
     await fs.mkdir(path.join(configDir, 'projects'), { recursive: true })
   })
@@ -65,7 +65,7 @@ describe('background task notification persistence', () => {
       result: 'Background verification passed',
       timestamp: '2026-07-18T00:01:00.000Z',
     }])
-    expect(await fs.readFile(transcriptPath, 'utf8')).toContain('"type":"cc-haha-task-notification"')
+    expect(await fs.readFile(transcriptPath, 'utf8')).toContain('"type":"haha-task-notification"')
   })
 
   it('keeps restoring legacy task-notification transcript turns', async () => {

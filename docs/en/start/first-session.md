@@ -90,7 +90,7 @@ After each edit lands, the session shows an **inline diff**: the file path, an `
 
 Once a turn finishes and the changes pile up, open the **workspace** panel on the right ("Show Workspace" at the top right of the tab bar). It collects everything changed this turn into a list you can open for a full review, comment on specific lines, and send those comments — with their code location attached — straight back into the composer for another round.
 
-The full workspace walkthrough is in [Workspace](../desktop/workspace.md).
+The full workspace walkthrough is in [Workspace](../web/workspace.md).
 
 :::warning
 Denied edits never reach the disk, but the disk and `git diff` are the only source of truth. Run `git status` and `git diff` yourself before you ship anything — don't take the UI's word for it.
@@ -98,6 +98,6 @@ Denied edits never reach the disk, but the disk and `git diff` are the only sour
 
 ## Next
 
-- See what else it can do — [desktop feature map](../desktop/index.md)
-- Keep going from your phone — [Phone and IM handoff](../desktop/remote.md)
+- See what else it can do — [desktop feature map](../web/index.md)
+- Keep going from your phone — [Phone and IM handoff](../web/remote.md)
 - Something got stuck — [Won't install, won't open, won't connect](./troubleshooting.md)

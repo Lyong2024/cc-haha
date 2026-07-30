@@ -43,7 +43,7 @@ const FAIL_CLOSED_GRANT_FLAGS: CuGrantFlags = {
 export function getComputerUseConfigPath(): string {
   return join(
     getClaudeConfigHomeDir(),
-    'cc-haha',
+    'haha',
     'computer-use-config.json',
   )
 }

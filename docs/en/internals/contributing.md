@@ -17,10 +17,10 @@ Install root dependencies with Bun:
 bun install
 ```
 
-If your change touches `desktop/`, also install desktop dependencies:
+If your change touches `web/`, also install desktop dependencies:
 
 ```bash
-cd desktop
+cd web
 bun install
 ```
 
@@ -31,7 +31,7 @@ cd adapters
 bun install
 ```
 
-Do not commit local artifacts such as `artifacts/quality-runs/`, `node_modules/`, or `desktop/node_modules/`.
+Do not commit local artifacts such as `artifacts/quality-runs/`, `node_modules/`, or `web/node_modules/`.
 
 ## Path-Aware PR Checks
 
@@ -82,7 +82,7 @@ Agents should handle failures in this order:
 1. Start with the Summary and Result Matrix in `artifacts/quality-runs/<timestamp>/report.md` to identify the failing lane.
 2. If `Path-aware PR checks` failed, check for missing same-area tests, CLI core changes, or coverage policy changes. Do not bypass normal feature PRs with maintainer overrides.
 3. If `Coverage gate` failed, open `artifacts/coverage/<timestamp>/coverage-report.md` or `coverage-report.json`, then fix `changedLines.failures` and `failures` first. `targetGaps` are technical-debt signals; touched areas should still improve.
-4. If desktop/server/adapters/native/docs failed, read `artifacts/quality-runs/<timestamp>/logs/<lane>.log`, add tests or fix the build, then rerun the narrow command.
+4. If web/server/adapters/native/docs failed, read `artifacts/quality-runs/<timestamp>/logs/<lane>.log`, add tests or fix the build, then rerun the narrow command.
 5. After narrow checks pass, run `bun run verify` when claiming PR-ready/full validation. The agent may only make that claim when the final Summary has `failed=0`.
 
 External reference points:
@@ -96,7 +96,7 @@ External reference points:
 Every feature, bugfix, and behavior change must ship with verifiable evidence. This rule applies to human authors and AI coding agents:
 
 - Name the changed surface first: `desktop`, `server`, `adapter`, `native`, `docs`, `provider/runtime`, `agent-loop`, or `release`.
-- Production changes under `desktop/src`, `src/server`, `src/tools`, `src/utils`, or `adapters` must include same-area tests in the same PR unless a maintainer explicitly applies `allow-missing-tests`.
+- Production changes under `web/src`, `src/server`, `src/tools`, `src/utils`, or `adapters` must include same-area tests in the same PR unless a maintainer explicitly applies `allow-missing-tests`.
 - Pure logic needs unit tests. Server/API/provider/runtime behavior needs API or request-shape tests. Desktop UI/store/API behavior needs Vitest or Testing Library coverage. Cross-boundary user flows through UI, WebSocket, provider proxying, native sidecars, or release packaging need E2E or agent-browser smoke.
 - Agent loop, tool execution, provider routing, model selection, file editing, permissions, session resume, and desktop chat changes need mock/fixture tests in PR, plus live smoke or baseline evidence when provider access is available.
 - Coverage is part of the feature. This project follows a Google/Microsoft-style policy: generated/build output is not counted as product coverage, maintained product areas should move toward 75-80%+, and new or changed executable production lines must pass the changed-line coverage threshold in `coverage-thresholds.json`.
@@ -144,7 +144,7 @@ Run the checks that match the files you changed:
 
 ```bash
 bun run check:server      # Server API, WebSocket, providers, sessions, and related tests
-bun run check:desktop     # Desktop lint, Vitest, and production build
+bun run check:web         # Web SPA lint, Vitest, and production build
 bun run check:adapters    # IM adapter tests
 bun run check:native      # Desktop sidecars, Electron host, and package-smoke checks
 bun run check:provider-contract # Offline provider/runtime/proxy contract tests
@@ -157,7 +157,7 @@ bun run check:coverage    # Root, desktop, and adapter coverage reports plus rat
 
 Focused tests are the normal development loop. Run `bun run verify` locally when claiming PR-ready/full validation; hosted CI still executes every selected required lane.
 
-Production code changes must include matching tests. Changes under `desktop/src/**`, `src/server/**`, `src/tools/**`, `src/utils/**`, or `adapters/**` without a same-area test file are blocked unless a maintainer applies `allow-missing-tests`. Coverage baseline/threshold changes are also blocked unless a maintainer applies `allow-coverage-baseline-change`.
+Production code changes must include matching tests. Changes under `web/src/**`, `src/server/**`, `src/tools/**`, `src/utils/**`, or `adapters/**` without a same-area test file are blocked unless a maintainer applies `allow-missing-tests`. Coverage baseline/threshold changes are also blocked unless a maintainer applies `allow-coverage-baseline-change`.
 
 ## Live Model Baseline
 
@@ -245,7 +245,7 @@ In release mode, live lanes are not allowed to be silently skipped. Missing prov
 
 ## Releases and Auto-Update
 
-`desktop/package.json` is the single source of the desktop version number. A real release requires the version, the Git tag, and `release-notes/vX.Y.Z.md` to match exactly.
+`web/package.json` is the single source of the desktop version number. A real release requires the version, the Git tag, and `release-notes/vX.Y.Z.md` to match exactly.
 
 In-app updates are driven by `electron-updater`, with artifacts hosted on GitHub Releases:
 

@@ -168,16 +168,16 @@ export class DoctorService {
     const targets: DoctorTarget[] = [
       this.jsonTarget('user-settings', 'User settings', 'user', path.join(this.configDir, 'settings.json')),
       this.jsonTarget(
-        'cc-haha-providers',
+        'haha-providers',
         'Managed providers',
         'user',
-        path.join(this.configDir, 'cc-haha', 'providers.json'),
+        path.join(this.configDir, 'haha', 'providers.json'),
       ),
       this.jsonTarget(
-        'cc-haha-settings',
+        'haha-settings',
         'Managed provider settings',
         'user',
-        path.join(this.configDir, 'cc-haha', 'settings.json'),
+        path.join(this.configDir, 'haha', 'settings.json'),
       ),
       this.jsonTarget('adapters', 'Adapters config', 'user', path.join(this.configDir, 'adapters.json')),
       this.jsonTarget(
@@ -207,18 +207,18 @@ export class DoctorService {
         path.join(this.configDir, 'cowork_plugins'),
       ),
       this.jsonTarget('user-mcp', 'User MCP config', 'user', this.getUserMcpConfigPath()),
-      this.jsonTarget('oauth', 'OAuth tokens', 'user', path.join(this.configDir, 'cc-haha', 'oauth.json')),
+      this.jsonTarget('oauth', 'OAuth tokens', 'user', path.join(this.configDir, 'haha', 'oauth.json')),
       this.jsonTarget(
         'openai-oauth',
         'OpenAI OAuth tokens',
         'user',
-        path.join(this.configDir, 'cc-haha', 'openai-oauth.json'),
+        path.join(this.configDir, 'haha', 'openai-oauth.json'),
       ),
       this.jsonTarget(
         'grok-oauth',
         'Grok OAuth tokens',
         'user',
-        path.join(this.configDir, 'cc-haha', 'grok-oauth.json'),
+        path.join(this.configDir, 'haha', 'grok-oauth.json'),
       ),
     ]
 
@@ -303,7 +303,7 @@ export class DoctorService {
 
     try {
       const parsed = JSON.parse(raw)
-      if (target.id === 'cc-haha-providers') {
+      if (target.id === 'haha-providers') {
         const result = ProvidersIndexSchema.safeParse(parsed)
         if (!result.success) {
           const error = result.error.issues

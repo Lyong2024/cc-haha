@@ -7,7 +7,7 @@ order: 12
 
 # Computer Use Architecture
 
-Between the model asking for a click and the mouse actually moving sit four gates: tool definitions, authorization checks, the Python bridge, and a platform helper. This page takes each one apart. For setup and everyday usage, start with the [Computer Use guide](../desktop/computer-use.md).
+Between the model asking for a click and the mouse actually moving sit four gates: tool definitions, authorization checks, the Python bridge, and a platform helper. This page takes each one apart. For setup and everyday usage, start with the [Computer Use guide](../web/computer-use.md).
 
 ## Layers
 
@@ -218,7 +218,7 @@ Settings is the configuration entry point. Actual calls still execute inside the
 | `src/utils/computerUse/pythonBridge.ts` | venv, dependencies, and subprocess protocol |
 | `src/utils/computerUse/wrapper.tsx` | CLI permission UI and session context |
 | `src/server/api/computer-use.ts` | Desktop Settings API |
-| `desktop/src/pages/ComputerUseSettings.tsx` | Desktop Settings UI |
+| `web/src/pages/ComputerUseSettings.tsx` | Desktop Settings UI |
 
 ## Verification priorities
 

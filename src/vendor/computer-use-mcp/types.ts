@@ -141,7 +141,7 @@ export interface ResolvedAppRequest {
 /**
  * Payload for the renderer approval dialog. Rides through the existing
  * `ToolPermissionRequest.input: unknown` field
- * (packages/utils/desktop/bridge/common/claude.web.ts:1262) — no IPC schema
+ * (packages/utils/web/bridge/common/claude.web.ts:1262) — no IPC schema
  * change needed.
  */
 export interface CuPermissionRequest {
@@ -214,7 +214,7 @@ export interface CuPermissionResponse {
 
 /**
  * Process-lifetime singleton dependencies. Everything that does NOT vary per
- * tool call. Built once by `apps/desktop/src/main/nest-only/chicago/hostAdapter.ts`.
+ * tool call. Built once by `apps/web/src/main/nest-only/chicago/hostAdapter.ts`.
  * No Electron imports in this package — the host injects everything.
  */
 export interface ComputerUseHostAdapter {

@@ -92,7 +92,7 @@ async function captureQueryRequest({
       })
     },
   })
-  const configDir = await mkdtemp(join(tmpdir(), 'cc-haha-required-thinking-'))
+  const configDir = await mkdtemp(join(tmpdir(), 'haha-required-thinking-'))
   const originalEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]))
   const globals = globalThis as typeof globalThis & { MACRO?: { BUILD_TIME: string } }
   const originalMacro = globals.MACRO

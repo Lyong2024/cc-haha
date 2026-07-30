@@ -28,7 +28,7 @@ function usage(): never {
   claude-haha-web reset-password
 
 Environment:
-  SERVER_HOST, SERVER_PORT, CC_HAHA_DATA_DIR, CLAUDE_H5_DIST_DIR / WEB_APP_DIST
+  SERVER_HOST, SERVER_PORT, HAHA_DATA_DIR, CLAUDE_H5_DIST_DIR / WEB_APP_DIST
 `)
   process.exit(1)
 }
@@ -40,8 +40,8 @@ function readFlag(args: string[], name: string): string | undefined {
 }
 
 function defaultDataDir(): string {
-  return process.env.CC_HAHA_DATA_DIR?.trim() ||
-    join(process.env.HOME || process.env.USERPROFILE || ROOT, '.claude', 'cc-haha-web')
+  return process.env.HAHA_DATA_DIR?.trim() ||
+    join(process.env.HOME || process.env.USERPROFILE || ROOT, '.claude', 'haha-web')
 }
 
 function runtimeDir(dataDir: string): string {
@@ -72,26 +72,40 @@ async function cmdStart(args: string[]) {
   const options = parseStartOptions(args)
   mkdirSync(runtimeDir(options.dataDir), { recursive: true })
 
-  const distDir = options.dist
-    ? resolve(options.dist)
-    : join(ROOT, 'desktop', 'dist')
+  // Prefer usable SPA root: --dist/env → repo-root dist/ → legacy web/dist.
+  const candidates = [
+    options.dist ? resolve(options.dist) : null,
+    join(ROOT, 'dist'),
+    join(ROOT, 'web', 'dist'),
+  ].filter((value): value is string => !!value)
 
-  if (!existsSync(join(distDir, 'index.html'))) {
-    console.warn(`[warn] SPA dist not found at ${distDir} (missing index.html).`)
-    console.warn('        Build with: cd desktop && bun run build')
+  let distDir = candidates[0]!
+  const withIndex = candidates.find((dir) => existsSync(join(dir, 'index.html')))
+  if (withIndex) {
+    distDir = withIndex
+    if (options.dist && resolve(options.dist) !== withIndex) {
+      console.warn(
+        `[warn] SPA missing at ${resolve(options.dist)}; using ${withIndex}`,
+      )
+    }
+  } else {
+    console.warn(`[warn] SPA dist not found (missing index.html). Tried: ${candidates.join(', ')}`)
+    console.warn('        Build with: pnpm run web:build  (outputs to repo-root dist/)')
   }
 
   const env: Record<string, string> = {
     ...process.env as Record<string, string>,
-    CC_HAHA_WEB_MODE: '1',
-    CC_HAHA_WEB_AUTH: '1',
-    CC_HAHA_DATA_DIR: options.dataDir,
+    HAHA_WEB_MODE: '1',
+    HAHA_WEB_AUTH: '1',
+    HAHA_DATA_DIR: options.dataDir,
     SERVER_HOST: options.host,
     SERVER_PORT: String(options.port),
+    // Always pin to the resolved path so stale CLAUDE_H5_DIST_DIR in the
+    // parent environment cannot force web/dist over root dist/.
     CLAUDE_H5_DIST_DIR: distDir,
   }
   if (options.workDir) {
-    env.CC_HAHA_DEFAULT_WORK_DIR = options.workDir
+    env.HAHA_DEFAULT_WORK_DIR = options.workDir
   }
   if (options.cliPath) {
     env.CLAUDE_CLI_PATH = options.cliPath
@@ -163,9 +177,9 @@ async function cmdStatus(args: string[]) {
 
 async function cmdResetPassword(args: string[]) {
   const dataDir = resolve(readFlag(args, '--data-dir') || defaultDataDir())
-  process.env.CC_HAHA_DATA_DIR = dataDir
-  process.env.CC_HAHA_WEB_MODE = '1'
-  process.env.CC_HAHA_WEB_AUTH = '1'
+  process.env.HAHA_DATA_DIR = dataDir
+  process.env.HAHA_WEB_MODE = '1'
+  process.env.HAHA_WEB_AUTH = '1'
 
   const { openWebControlDatabase } = await import('../src/server/services/webControlDb.ts')
   const { WebAuthService } = await import('../src/server/services/webAuthService.ts')

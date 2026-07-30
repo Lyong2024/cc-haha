@@ -89,6 +89,7 @@ type ReducerState = {
   runtimeProviderId: string | null | undefined
   runtimeModelId: string | undefined
   effortLevel: string | undefined
+  agentCliId: string | undefined
   repository: PersistedRepositorySession | undefined
   worktreeSession: PersistedWorktreeSession | null | undefined
   nextOrdinal: number
@@ -248,6 +249,7 @@ function createInitialState(
     runtimeProviderId: undefined,
     runtimeModelId: undefined,
     effortLevel: undefined,
+    agentCliId: summary?.agentCliId,
     repository: undefined,
     worktreeSession: undefined,
     nextOrdinal: 0,
@@ -547,6 +549,9 @@ function applyEntry(state: ReducerState, entry: ReducerEntry): void {
     ) {
       state.effortLevel = record.effortLevel
     }
+    if (typeof record.agentCliId === 'string' && record.agentCliId.trim()) {
+      state.agentCliId = record.agentCliId.trim()
+    }
   }
 
   if (typeof entry.cwd === 'string' && entry.cwd.trim()) {
@@ -611,6 +616,7 @@ function summaryFromState(state: ReducerState): SessionListSummary {
       : {}),
     ...(state.runtimeModelId ? { runtimeModelId: state.runtimeModelId } : {}),
     ...(state.effortLevel ? { effortLevel: state.effortLevel } : {}),
+    ...(state.agentCliId ? { agentCliId: state.agentCliId } : {}),
     ...(state.repository ? { repository: { ...state.repository } } : {}),
     ...(state.worktreeSession !== undefined
       ? {

@@ -6,8 +6,12 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import type { WebControlDatabase } from './webControlDb.js'
 import { getWebControlDatabase } from './webControlDb.js'
 
-export const WEB_SESSION_COOKIE = 'cc_haha_session'
+export const WEB_SESSION_COOKIE = 'HAHA_session'
 export const DEFAULT_SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000
+/** Failed logins before device/IP is locked. */
+export const LOGIN_MAX_FAILURES = 10
+/** Lock duration after max failures. */
+export const LOGIN_LOCKOUT_MS = 60 * 60 * 1000
 
 export type WebAuthStatus = {
   setupRequired: boolean
@@ -15,6 +19,13 @@ export type WebAuthStatus = {
   mode: 'web-admin'
   /** Present when admin exists (login form may show it as a soft hint). */
   username?: string | null
+  /** Brute-force lockout policy (always returned for UI). */
+  lockoutPolicy?: {
+    maxFailures: number
+    lockDurationSeconds: number
+  }
+  /** Present when the calling client (fingerprint and/or IP) is locked. */
+  lockout?: LoginLockoutState | null
 }
 
 export type WebSessionRecord = {
@@ -29,6 +40,21 @@ export type WebSessionRecord = {
 export type AdminCredentials = {
   username: string
   password: string
+}
+
+export type AuthClientContext = {
+  ip?: string | null
+  userAgent?: string | null
+  /** Browser fingerprint visitorId (FingerprintJS open-source). */
+  fingerprint?: string | null
+}
+
+export type LoginLockoutState = {
+  locked: boolean
+  failCount: number
+  remainingAttempts: number
+  lockedUntil: string | null
+  retryAfterSeconds: number
 }
 
 const USERNAME_MIN = 3
@@ -123,18 +149,171 @@ export function readSessionTokenFromRequest(req: Request): string | null {
   return queryToken?.trim() || null
 }
 
+function normalizeFingerprint(value: string | null | undefined): string | null {
+  if (!value) return null
+  const trimmed = value.trim().slice(0, 128)
+  if (!trimmed) return null
+  // Allow alphanumeric + common fingerprint chars only.
+  if (!/^[a-zA-Z0-9._:-]+$/.test(trimmed)) return null
+  return trimmed
+}
+
+function clientKeys(ctx?: AuthClientContext | null): string[] {
+  const keys: string[] = []
+  const fp = normalizeFingerprint(ctx?.fingerprint)
+  if (fp) keys.push(`fp:${fp}`)
+  const ip = ctx?.ip?.trim()
+  if (ip) keys.push(`ip:${ip}`)
+  // Always have a fallback bucket when neither is available (tests / edge).
+  if (keys.length === 0) keys.push('unknown:anonymous')
+  return keys
+}
+
 export class WebAuthService {
   constructor(private readonly database: WebControlDatabase = getWebControlDatabase()) {}
 
-  getStatus(sessionToken?: string | null): WebAuthStatus {
+  getStatus(sessionToken?: string | null, client?: AuthClientContext | null): WebAuthStatus {
     const setupRequired = !this.hasAdmin()
     const authenticated = !setupRequired && !!sessionToken && !!this.validateSession(sessionToken)
+    const lockout = this.getLockoutState(client)
     return {
       setupRequired,
       authenticated,
       mode: 'web-admin',
       // Soft hint for the login form only; never a secret.
       username: setupRequired ? null : this.getAdminUsername(),
+      lockoutPolicy: {
+        maxFailures: LOGIN_MAX_FAILURES,
+        lockDurationSeconds: Math.floor(LOGIN_LOCKOUT_MS / 1000),
+      },
+      lockout,
+    }
+  }
+
+  getLockoutState(client?: AuthClientContext | null): LoginLockoutState {
+    const now = Date.now()
+    let failCount = 0
+    let lockedUntilMs = 0
+
+    for (const key of clientKeys(client)) {
+      const row = this.database.db
+        .query<
+          { fail_count: number; locked_until: string | null },
+          [string]
+        >(
+          'SELECT fail_count, locked_until FROM auth_lockout WHERE client_key = ?',
+        )
+        .get(key)
+      if (!row) continue
+      failCount = Math.max(failCount, row.fail_count)
+      if (row.locked_until) {
+        const until = Date.parse(row.locked_until)
+        if (Number.isFinite(until) && until > lockedUntilMs) lockedUntilMs = until
+      }
+    }
+
+    if (lockedUntilMs > now) {
+      return {
+        locked: true,
+        failCount,
+        remainingAttempts: 0,
+        lockedUntil: new Date(lockedUntilMs).toISOString(),
+        retryAfterSeconds: Math.max(1, Math.ceil((lockedUntilMs - now) / 1000)),
+      }
+    }
+
+    // Expired lock: treat as unlocked; counters reset on next success or after lock expires + new attempt window.
+    const effectiveFails = lockedUntilMs > 0 && lockedUntilMs <= now ? 0 : failCount
+    return {
+      locked: false,
+      failCount: effectiveFails,
+      remainingAttempts: Math.max(0, LOGIN_MAX_FAILURES - effectiveFails),
+      lockedUntil: null,
+      retryAfterSeconds: 0,
+    }
+  }
+
+  assertNotLocked(client?: AuthClientContext | null): void {
+    const state = this.getLockoutState(client)
+    if (!state.locked) return
+    throw Object.assign(
+      new Error(
+        `登录失败次数过多，已锁定 ${Math.ceil(state.retryAfterSeconds / 60)} 分钟。请在 ${state.lockedUntil} 后重试。`,
+      ),
+      {
+        code: 'LOCKED' as const,
+        lockout: state,
+      },
+    )
+  }
+
+  private recordLoginFailure(client?: AuthClientContext | null): LoginLockoutState {
+    const ts = nowIso()
+    const now = Date.now()
+    let maxFails = 0
+    let lockedUntilIso: string | null = null
+
+    for (const key of clientKeys(client)) {
+      const existing = this.database.db
+        .query<
+          { fail_count: number; locked_until: string | null },
+          [string]
+        >(
+          'SELECT fail_count, locked_until FROM auth_lockout WHERE client_key = ?',
+        )
+        .get(key)
+
+      let failCount = existing?.fail_count ?? 0
+      const existingLock = existing?.locked_until ? Date.parse(existing.locked_until) : 0
+      // Reset counter if previous lock fully expired.
+      if (existingLock > 0 && existingLock <= now) {
+        failCount = 0
+      }
+      failCount += 1
+
+      let lockedUntil: string | null = null
+      if (failCount >= LOGIN_MAX_FAILURES) {
+        lockedUntil = new Date(now + LOGIN_LOCKOUT_MS).toISOString()
+        lockedUntilIso = lockedUntil
+      }
+
+      this.database.db
+        .query(
+          `INSERT INTO auth_lockout(client_key, fail_count, locked_until, last_fail_at, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(client_key) DO UPDATE SET
+             fail_count = excluded.fail_count,
+             locked_until = excluded.locked_until,
+             last_fail_at = excluded.last_fail_at,
+             updated_at = excluded.updated_at`,
+        )
+        .run(key, failCount, lockedUntil, ts, ts, ts)
+
+      maxFails = Math.max(maxFails, failCount)
+    }
+
+    if (lockedUntilIso) {
+      return {
+        locked: true,
+        failCount: maxFails,
+        remainingAttempts: 0,
+        lockedUntil: lockedUntilIso,
+        retryAfterSeconds: Math.floor(LOGIN_LOCKOUT_MS / 1000),
+      }
+    }
+
+    return {
+      locked: false,
+      failCount: maxFails,
+      remainingAttempts: Math.max(0, LOGIN_MAX_FAILURES - maxFails),
+      lockedUntil: null,
+      retryAfterSeconds: 0,
+    }
+  }
+
+  private clearLoginFailures(client?: AuthClientContext | null): void {
+    for (const key of clientKeys(client)) {
+      this.database.db.query('DELETE FROM auth_lockout WHERE client_key = ?').run(key)
     }
   }
 
@@ -186,11 +365,14 @@ export class WebAuthService {
   /**
    * Login with username + password. Accepts legacy string password only when
    * the stored username is the default "admin" (migrated v1 installs).
+   * Enforces fingerprint/IP lockout after LOGIN_MAX_FAILURES failures.
    */
   login(
     credentials: AdminCredentials | string,
-    meta?: { ip?: string | null; userAgent?: string | null },
+    meta?: AuthClientContext | null,
   ) {
+    this.assertNotLocked(meta)
+
     const row = this.database.db
       .query<{ username: string | null; password_hash: string }, []>(
         'SELECT username, password_hash FROM admin_user WHERE id = 1',
@@ -211,12 +393,30 @@ export class WebAuthService {
       password = credentials.password
     }
 
-    if (!username || !usernamesEqual(username, storedUsername)) {
-      throw Object.assign(new Error('Invalid credentials'), { code: 'UNAUTHORIZED' as const })
+    const usernameOk = !!username && usernamesEqual(username, storedUsername)
+    const passwordOk = usernameOk && verifyPassword(password, row.password_hash)
+    if (!passwordOk) {
+      const lockout = this.recordLoginFailure(meta)
+      if (lockout.locked) {
+        throw Object.assign(
+          new Error(
+            `登录失败次数过多（${LOGIN_MAX_FAILURES} 次），本设备/IP 已锁定 1 小时。`,
+          ),
+          { code: 'LOCKED' as const, lockout },
+        )
+      }
+      throw Object.assign(
+        new Error(
+          `账号或密码错误，还可尝试 ${lockout.remainingAttempts} 次（失败 ${LOGIN_MAX_FAILURES} 次将锁定 1 小时）`,
+        ),
+        {
+          code: 'UNAUTHORIZED' as const,
+          lockout,
+        },
+      )
     }
-    if (!verifyPassword(password, row.password_hash)) {
-      throw Object.assign(new Error('Invalid credentials'), { code: 'UNAUTHORIZED' as const })
-    }
+
+    this.clearLoginFailures(meta)
     return this.createSession(meta)
   }
 
@@ -371,12 +571,12 @@ export class WebAuthService {
 }
 
 export function isWebAuthEnforced(): boolean {
-  const value = process.env.CC_HAHA_WEB_AUTH?.trim().toLowerCase()
+  const value = process.env.HAHA_WEB_AUTH?.trim().toLowerCase()
   if (value === '0' || value === 'false' || value === 'off') return false
   if (value === '1' || value === 'true' || value === 'on') return true
-  if (process.env.CC_HAHA_WEB_MODE === '1') return true
+  if (process.env.HAHA_WEB_MODE === '1') return true
   // Pure-web branch product default: enforce admin session unless tests opt out.
-  // Existing server unit tests set NODE_ENV=test or CC_HAHA_WEB_AUTH=0.
+  // Existing server unit tests set NODE_ENV=test or HAHA_WEB_AUTH=0.
   if (process.env.NODE_ENV === 'test' || process.env.BUN_TEST === '1') {
     return false
   }

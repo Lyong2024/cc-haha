@@ -73,7 +73,7 @@ AZURE_OPENAI_CODEX_DEPLOYMENT=your_codex_deployment
 桌面端把 Provider 索引保存到：
 
 ```text
-~/.claude/cc-haha/providers.json
+~/.claude/haha/providers.json
 ```
 
 应用管理的 Provider 环境写入隔离的 Haha 配置，不需要手工复制到 `~/.claude/settings.json`。当 CLI 读取到已激活的 Provider 时，会复用其认证、模型和协议设置；`openai_chat` 与 `openai_responses` Provider 会自动使用本机回环代理。

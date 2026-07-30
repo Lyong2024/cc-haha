@@ -26,7 +26,7 @@ let originalHasSession: typeof conversationService.hasSession
 let originalRequestControl: typeof conversationService.requestControl
 
 beforeEach(async () => {
-  tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'cc-haha-agents-api-'))
+  tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'haha-agents-api-'))
   configDir = path.join(tempRoot, 'config')
   projectRoot = path.join(tempRoot, 'project')
   projectCwd = path.join(projectRoot, 'src')

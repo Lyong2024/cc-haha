@@ -1,14 +1,18 @@
 /**
  * Provider Service — preset-based provider configuration
  *
- * Storage: ~/.claude/cc-haha/providers.json (lightweight index)
- * Active provider env vars written to ~/.claude/cc-haha/settings.json
- * (isolated from the original Claude Code's ~/.claude/settings.json)
+ * Storage: {resolveHahaDataDir()}/providers.json (lightweight index)
+ * Active provider env vars written to the same product data dir settings.json
+ * (isolated from the original Claude Code's ~/.claude/settings.json).
+ *
+ * Path resolution prefers a populated desktop `cc-haha` install over an empty
+ * scaffolded `haha/` so pure-web and desktop share the same provider list.
  */
 
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import * as os from 'os'
+import { resolveHahaDataDir } from './ccHahaPaths.js'
 import { ApiError } from '../middleware/errorHandler.js'
 import { readRecoverableJsonFile } from './recoverableJsonFile.js'
 import { ManagedSettingsService } from './managedSettingsService.js'
@@ -56,9 +60,21 @@ import type {
   ProviderTestStepResult,
   ApiFormat,
   ProviderAuthStrategy,
+  ProviderCredentialExport,
+  ProviderQuotaSnapshot,
+  ProviderAccountInfo,
 } from '../types/provider.js'
 import {
+  buildCredentialExport,
+  buildGrokOAuthCredentialExport,
+  probeProviderQuota,
+  refreshProviderCredentialMeta,
+  resolveAccountType,
+  maskApiKey,
+} from './providerAccountService.js'
+import {
   BUILT_IN_PROVIDER_IDS,
+  isBuiltInProviderId,
 } from '../types/provider.js'
 
 const DEFAULT_INDEX: ProvidersIndex = {
@@ -144,12 +160,12 @@ export class ProviderService {
     return process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude')
   }
 
-  private getCcHahaDir(): string {
-    return path.join(this.getConfigDir(), 'cc-haha')
+  private getHahaDir(): string {
+    return resolveHahaDataDir()
   }
 
   private getIndexPath(): string {
-    return path.join(this.getCcHahaDir(), 'providers.json')
+    return path.join(this.getHahaDir(), 'providers.json')
   }
 
   private async readIndex(): Promise<ProvidersIndex> {
@@ -192,6 +208,38 @@ export class ProviderService {
     }))
   }
 
+  // --- External sources (discover + user opt-in import) ---
+
+  async listExternalSources() {
+    const index = await this.readIndex()
+    const {
+      listExternalSources,
+    } = await import('./externalProviderSources.js')
+    return {
+      activeDataDir: this.getHahaDir(),
+      sources: listExternalSources(index.providers),
+    }
+  }
+
+  async listExternalProviderCandidates() {
+    const index = await this.readIndex()
+    const { listExternalProviderCandidates } = await import('./externalProviderSources.js')
+    return {
+      activeDataDir: this.getHahaDir(),
+      candidates: listExternalProviderCandidates(index.providers),
+    }
+  }
+
+  async importExternalProviders(keys: string[]) {
+    const index = await this.readIndex()
+    const { importExternalProvidersIntoIndex } = await import('./externalProviderSources.js')
+    const { index: next, result } = importExternalProvidersIntoIndex(index, keys)
+    if (result.imported.length > 0) {
+      await this.writeIndex(next)
+    }
+    return result
+  }
+
   // --- CRUD ---
 
   async listProviders(): Promise<{ providers: SavedProvider[]; activeId: string | null; providerOrder: string[] }> {
@@ -208,7 +256,7 @@ export class ProviderService {
       return OPENAI_OFFICIAL_PROVIDER
     }
     if (isGrokOfficialProviderId(id)) {
-      return GROK_OFFICIAL_PROVIDER
+      return this.enrichGrokOfficialProvider()
     }
 
     const index = await this.readIndex()
@@ -217,8 +265,30 @@ export class ProviderService {
     return provider
   }
 
+  private async enrichGrokOfficialProvider(): Promise<SavedProvider> {
+    const tokens = await hahaGrokOAuthService.loadTokens().catch(() => null)
+    if (!tokens) {
+      return {
+        ...GROK_OFFICIAL_PROVIDER,
+        accountInfo: { type: 'oauth/grok', accountLabel: '未登录' },
+      }
+    }
+    return {
+      ...GROK_OFFICIAL_PROVIDER,
+      name: tokens.displayName?.trim() || GROK_OFFICIAL_PROVIDER.name,
+      createdAt: tokens.createdAt ?? undefined,
+      updatedAt: new Date().toISOString(),
+      accountInfo: {
+        type: 'oauth/grok',
+        email: tokens.email,
+        accountLabel: tokens.displayName?.trim() || tokens.email || 'Grok OAuth',
+      },
+    }
+  }
+
   async addProvider(input: CreateProviderInput): Promise<SavedProvider> {
     const index = await this.readIndex()
+    const ts = new Date().toISOString()
 
     const provider: SavedProvider = {
       id: crypto.randomUUID(),
@@ -236,6 +306,12 @@ export class ProviderService {
       toolSearchEnabled: input.toolSearchEnabled ?? true,
       ...(input.disableExperimentalBetas === true && { disableExperimentalBetas: true }),
       ...(input.notes !== undefined && { notes: input.notes }),
+      createdAt: ts,
+      updatedAt: ts,
+      accountInfo: {
+        type: input.authStrategy ?? (input.apiFormat === 'anthropic' || !input.apiFormat ? 'api_key' : input.apiFormat),
+        accountLabel: maskApiKey(input.apiKey),
+      },
     }
 
     index.providerOrder = appendNewProviderToOrder(index.providerOrder, provider.id, index.providers)
@@ -250,6 +326,7 @@ export class ProviderService {
     if (idx === -1) throw ApiError.notFound(`Provider not found: ${id}`)
 
     const existing = index.providers[idx]
+    const ts = new Date().toISOString()
     const updated: SavedProvider = {
       ...existing,
       ...(input.name !== undefined && { name: input.name }),
@@ -265,6 +342,21 @@ export class ProviderService {
       ...(input.toolSearchEnabled !== undefined && { toolSearchEnabled: input.toolSearchEnabled }),
       ...(input.disableExperimentalBetas === true && { disableExperimentalBetas: true }),
       ...(input.notes !== undefined && { notes: input.notes }),
+      createdAt: existing.createdAt ?? ts,
+      updatedAt: ts,
+      accountInfo: {
+        ...(existing.accountInfo ?? {}),
+        type: resolveAccountType({
+          ...existing,
+          ...(input.authStrategy !== undefined && { authStrategy: input.authStrategy }),
+          ...(input.apiFormat !== undefined && { apiFormat: input.apiFormat }),
+          ...(input.runtimeKind !== undefined && { runtimeKind: input.runtimeKind }),
+        }),
+        accountLabel:
+          existing.accountInfo?.accountLabel
+          || existing.accountInfo?.email
+          || maskApiKey(input.apiKey ?? existing.apiKey),
+      },
     }
     if (input.model1mSupport === null) {
       delete updated.model1mSupport
@@ -290,6 +382,19 @@ export class ProviderService {
   }
 
   async deleteProvider(id: string): Promise<void> {
+    // Grok official "delete account" = clear OAuth tokens (logout), allowed even when active.
+    if (isGrokOfficialProviderId(id)) {
+      await hahaGrokOAuthService.deleteTokens()
+      const index = await this.readIndex()
+      if (index.activeId === id) {
+        index.activeId = null
+        await this.writeIndex(index)
+        // Drop managed Grok env from settings when clearing active official.
+        await this.activateOfficial().catch(() => {})
+      }
+      return
+    }
+
     const index = await this.readIndex()
     const idx = index.providers.findIndex((p) => p.id === id)
     if (idx === -1) throw ApiError.notFound(`Provider not found: ${id}`)
@@ -301,6 +406,151 @@ export class ProviderService {
     index.providers.splice(idx, 1)
     index.providerOrder = index.providerOrder.filter((providerId) => providerId !== id)
     await this.writeIndex(index)
+  }
+
+  /** Export full provider credentials as JSON (admin-only surface). */
+  async exportProviderCredentials(id: string): Promise<ProviderCredentialExport> {
+    if (isGrokOfficialProviderId(id)) {
+      const provider = await this.enrichGrokOfficialProvider()
+      try {
+        const { path: filePath, tokens } = await hahaGrokOAuthService.exportAuthJson()
+        return buildGrokOAuthCredentialExport(provider, tokens, filePath)
+      } catch (err) {
+        throw ApiError.badRequest(
+          err instanceof Error ? err.message : 'Grok OAuth 凭证导出失败',
+        )
+      }
+    }
+    if (isOpenAIOfficialProviderId(id)) {
+      throw ApiError.badRequest(
+        'OpenAI 官方 OAuth 请使用登录面板管理令牌；暂不支持通用 API Key 导出。',
+      )
+    }
+    const provider = await this.getProvider(id)
+    return buildCredentialExport(provider)
+  }
+
+  async renameProvider(id: string, name: string): Promise<SavedProvider> {
+    const trimmed = name.trim()
+    if (!trimmed) throw ApiError.badRequest('name is required')
+    if (isGrokOfficialProviderId(id)) {
+      try {
+        await hahaGrokOAuthService.updateDisplayName(trimmed)
+      } catch (err) {
+        throw ApiError.badRequest(err instanceof Error ? err.message : String(err))
+      }
+      return this.enrichGrokOfficialProvider()
+    }
+    if (isOpenAIOfficialProviderId(id) || isBuiltInProviderId(id)) {
+      throw ApiError.badRequest('内置官方服务商不支持重命名')
+    }
+    return this.updateProvider(id, { name: trimmed })
+  }
+
+  async syncProviderQuota(id: string): Promise<{
+    provider: SavedProvider
+    quotaSnapshot: ProviderQuotaSnapshot
+    accountInfo: ProviderAccountInfo
+  }> {
+    if (isGrokOfficialProviderId(id)) {
+      const pseudo = await this.enrichGrokOfficialProvider()
+      const probed = await probeProviderQuota({ ...pseudo, id })
+      return {
+        provider: {
+          ...pseudo,
+          name: probed.accountInfo.accountLabel || pseudo.name,
+          accountInfo: probed.accountInfo,
+          quotaSnapshot: probed.quotaSnapshot,
+        },
+        quotaSnapshot: probed.quotaSnapshot,
+        accountInfo: probed.accountInfo,
+      }
+    }
+    if (isOpenAIOfficialProviderId(id)) {
+      const pseudo: SavedProvider = { ...OPENAI_OFFICIAL_PROVIDER, apiKey: '' }
+      const probed = await probeProviderQuota({ ...pseudo, id })
+      return {
+        provider: { ...pseudo, accountInfo: probed.accountInfo, quotaSnapshot: probed.quotaSnapshot },
+        quotaSnapshot: probed.quotaSnapshot,
+        accountInfo: probed.accountInfo,
+      }
+    }
+
+    const index = await this.readIndex()
+    const idx = index.providers.findIndex((p) => p.id === id)
+    if (idx === -1) throw ApiError.notFound(`Provider not found: ${id}`)
+    const existing = index.providers[idx]!
+    const probed = await probeProviderQuota(existing)
+    const updated: SavedProvider = {
+      ...existing,
+      updatedAt: new Date().toISOString(),
+      createdAt: existing.createdAt ?? new Date().toISOString(),
+      accountInfo: probed.accountInfo,
+      quotaSnapshot: probed.quotaSnapshot,
+    }
+    index.providers[idx] = updated
+    await this.writeIndex(index)
+    return {
+      provider: updated,
+      quotaSnapshot: probed.quotaSnapshot,
+      accountInfo: probed.accountInfo,
+    }
+  }
+
+  async refreshProviderCredential(id: string): Promise<{
+    provider: SavedProvider
+    quotaSnapshot: ProviderQuotaSnapshot
+    accountInfo: ProviderAccountInfo
+    refreshed: boolean
+  }> {
+    if (isGrokOfficialProviderId(id)) {
+      const pseudo = await this.enrichGrokOfficialProvider()
+      const result = await refreshProviderCredentialMeta({ ...pseudo, id })
+      const enriched = await this.enrichGrokOfficialProvider()
+      return {
+        provider: {
+          ...enriched,
+          accountInfo: result.accountInfo,
+          quotaSnapshot: result.quotaSnapshot,
+        },
+        quotaSnapshot: result.quotaSnapshot,
+        accountInfo: result.accountInfo,
+        refreshed: result.refreshed,
+      }
+    }
+    if (isOpenAIOfficialProviderId(id)) {
+      const pseudo: SavedProvider = { ...OPENAI_OFFICIAL_PROVIDER, apiKey: '' }
+      const result = await refreshProviderCredentialMeta({ ...pseudo, id })
+      return {
+        provider: {
+          ...pseudo,
+          accountInfo: result.accountInfo,
+          quotaSnapshot: result.quotaSnapshot,
+        },
+        ...result,
+      }
+    }
+
+    const index = await this.readIndex()
+    const idx = index.providers.findIndex((p) => p.id === id)
+    if (idx === -1) throw ApiError.notFound(`Provider not found: ${id}`)
+    const existing = index.providers[idx]!
+    const result = await refreshProviderCredentialMeta(existing)
+    const updated: SavedProvider = {
+      ...existing,
+      updatedAt: new Date().toISOString(),
+      createdAt: existing.createdAt ?? new Date().toISOString(),
+      accountInfo: result.accountInfo,
+      quotaSnapshot: result.quotaSnapshot,
+    }
+    index.providers[idx] = updated
+    await this.writeIndex(index)
+    return {
+      provider: updated,
+      quotaSnapshot: result.quotaSnapshot,
+      accountInfo: result.accountInfo,
+      refreshed: result.refreshed,
+    }
   }
 
   /**
@@ -434,17 +684,17 @@ export class ProviderService {
 
   /**
    * Check whether any usable auth exists:
-   *  1. A cc-haha provider is active → has auth
+   *  1. A haha provider is active → has auth
    *  2. Original ~/.claude/settings.json has ANTHROPIC_AUTH_TOKEN or ANTHROPIC_API_KEY → has auth
    *  3. process.env already has ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN → has auth
    *  4. None of the above → needs setup
    */
   async checkAuthStatus(): Promise<{
     hasAuth: boolean
-    source: 'cc-haha-provider' | 'openai-oauth' | 'grok-oauth' | 'original-settings' | 'env' | 'none'
+    source: 'haha-provider' | 'openai-oauth' | 'grok-oauth' | 'original-settings' | 'env' | 'none'
     activeProvider?: string
   }> {
-    // 1. Check cc-haha active provider
+    // 1. Check haha active provider
     const index = await this.readIndex()
     if (index.activeId) {
       if (isOpenAIOfficialProviderId(index.activeId)) {
@@ -484,7 +734,7 @@ export class ProviderService {
         const needsProxy = provider.apiFormat != null && provider.apiFormat !== 'anthropic'
         const authEnv = buildProviderAuthEnv(provider, presetDefaultEnv, needsProxy)
         if (Object.values(authEnv).some(value => value.length > 0)) {
-          return { hasAuth: true, source: 'cc-haha-provider', activeProvider: provider.name }
+          return { hasAuth: true, source: 'haha-provider', activeProvider: provider.name }
         }
       }
     }

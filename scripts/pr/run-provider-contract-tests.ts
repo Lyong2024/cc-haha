@@ -32,7 +32,7 @@ const testFiles = [
 
 for (const testFile of testFiles) {
   console.log(`\n[provider-contract] ${testFile}`)
-  const sandboxHome = mkdtempSync(join(tmpdir(), 'cc-haha-provider-contract-'))
+  const sandboxHome = mkdtempSync(join(tmpdir(), 'haha-provider-contract-'))
   let exitCode = 1
   try {
     const proc = Bun.spawn([

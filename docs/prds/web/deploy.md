@@ -1,4 +1,4 @@
-# cc-haha Pure Web 部署
+# haha Pure Web 部署
 
 ## 前置
 
@@ -20,24 +20,25 @@ corepack prepare pnpm@11.17.0 --activate
 ```bash
 # 安装依赖（默认 pnpm）
 pnpm install
-cd desktop && pnpm install && cd ..
+cd web && pnpm install && cd ..
 
 # 构建 SPA
-cd desktop && pnpm run build && cd ..
+pnpm run web:build
+# 或: cd web && pnpm run build && cd ..
 
 # 启动（默认 127.0.0.1:3456；运行时仍用 Bun）
-pnpm run web:start
-# 或
-bun run ./bin/claude-haha-web.ts start
-# 或
-./bin/claude-haha-web start
+pnpm run dev
+# 或: pnpm run web:start
+# 或: bun run ./bin/claude-haha-web.ts start
+# 或: ./bin/claude-haha-web start
+# 一键构建 SPA 再启动: pnpm run web:dev
 
 # 常用参数
 #   --host 127.0.0.1
 #   --port 3456
 #   --data-dir <path>     # 控制面 DB、设置等
 #   --work-dir <path>     # 默认工作区
-#   --dist <path>         # SPA dist（默认 desktop/dist）
+#   --dist <path>         # SPA dist（默认仓库根 dist/）
 
 pnpm run web:status
 claude-haha-web stop
@@ -59,10 +60,10 @@ bun run ./bin/claude-haha-web.ts reset-password
 |------|------|------|
 | `SERVER_HOST` | 监听地址 | `127.0.0.1` |
 | `SERVER_PORT` | 端口 | `3456` |
-| `CLAUDE_H5_DIST_DIR` / `WEB_APP_DIST` | SPA 产物目录 | `desktop/dist` |
-| `CC_HAHA_DATA_DIR` | 数据目录（含 web-control sqlite） | 平台默认 config 目录 |
+| `CLAUDE_H5_DIST_DIR` / `WEB_APP_DIST` | SPA 产物目录 | 仓库根 `dist/` |
+| `HAHA_DATA_DIR` | 数据目录（含 web-control sqlite） | 平台默认 config 目录 |
 | `CLAUDE_CLI_PATH` | CLI 可执行路径 | 自动解析 |
-| `CC_HAHA_WEB_MODE` / `CC_HAHA_WEB_AUTH` | pure-web 强制管理员登录 | CLI start 时设为 `1` |
+| `HAHA_WEB_MODE` / `HAHA_WEB_AUTH` | pure-web 强制管理员登录 | CLI start 时设为 `1` |
 
 **安全**：公网务必反代 HTTPS；勿将管理员密码或 API Key 写入日志/镜像层。
 
@@ -78,8 +79,8 @@ curl -sS http://127.0.0.1:3456/health
 ## 升级
 
 1. 拉取 `web` 分支新版本  
-2. `pnpm install`（根目录 + `desktop/`）  
-3. `cd desktop && pnpm run build`  
+2. `pnpm install`（根目录 + `web/`）  
+3. `cd web && pnpm run build`  
 4. 重启 `claude-haha-web` / `pnpm run web:start`  
 5. 数据卷保留；关注 `web-control` / localIndex 迁移日志  
 

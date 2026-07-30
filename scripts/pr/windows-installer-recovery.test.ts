@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 describe('Windows installer recovery prerequisites', () => {
   test('does not compile native path helpers at install time', () => {
     const recoveryHelper = readFileSync(
-      'desktop/build/recover-legacy-install-data.ps1',
+      'web/build/recover-legacy-install-data.ps1',
       'utf8',
     )
 
@@ -31,37 +31,37 @@ describe('Windows installer recovery prerequisites', () => {
   })
 
   test('skips PowerShell only for a proven default per-user installation', () => {
-    const installerHook = readFileSync('desktop/build/installer.nsh', 'utf8')
+    const installerHook = readFileSync('web/build/installer.nsh', 'utf8')
     const fastPathStart = installerHook.indexOf(
-      'Function CcHahaCanSkipLegacyRecovery',
+      'Function HahaCanSkipLegacyRecovery',
     )
     const recoveryCall = installerHook.indexOf(
-      'UAC_AsUser_Call Function CcHahaRecoverLegacy',
+      'UAC_AsUser_Call Function HahaRecoverLegacy',
     )
 
     expect(fastPathStart).toBeGreaterThan(-1)
     expect(fastPathStart).toBeLessThan(recoveryCall)
     expect(installerHook).toMatch(
-      /Function CcHahaCanSkipLegacyRecovery[\s\S]*\$8 != "trusted-user"/,
+      /Function HahaCanSkipLegacyRecovery[\s\S]*\$8 != "trusted-user"/,
     )
     expect(installerHook).toMatch(
-      /StrCpy \$8 "trusted-user"[\s\S]*UAC_IsAdmin[\s\S]*StrCpy \$8 "untrusted-elevated"[\s\S]*UAC_IsInnerInstance[\s\S]*StrCpy \$8 "trusted-uac-outer"[\s\S]*Call CcHahaCanSkipLegacyRecovery/,
+      /StrCpy \$8 "trusted-user"[\s\S]*UAC_IsAdmin[\s\S]*StrCpy \$8 "untrusted-elevated"[\s\S]*UAC_IsInnerInstance[\s\S]*StrCpy \$8 "trusted-uac-outer"[\s\S]*Call HahaCanSkipLegacyRecovery/,
     )
     expect(installerHook).toContain(
-      '$ccHahaPerUserInstallLocation == ""',
+      '$HahaPerUserInstallLocation == ""',
     )
     expect(installerHook).toContain(
-      '$ccHahaPerMachineInstallLocation != ""',
+      '$HahaPerMachineInstallLocation != ""',
     )
     expect(installerHook).toContain(
-      '$ccHahaPerMachineUninstallString != ""',
+      '$HahaPerMachineUninstallString != ""',
     )
     expect(installerHook).toContain(
-      'StrCmp $ccHahaPerUserInstallLocation $INSTDIR',
+      'StrCmp $HahaPerUserInstallLocation $INSTDIR',
     )
     expect(installerHook).toContain('ReadEnvStr $R0 CLAUDE_CONFIG_DIR')
     expect(installerHook).toContain(
-      'IfFileExists "$ccHahaPerUserInstallLocation\\CLAUDE_CONFIG_DIR\\*.*"',
+      'IfFileExists "$HahaPerUserInstallLocation\\CLAUDE_CONFIG_DIR\\*.*"',
     )
     expect(installerHook).toContain(
       'FileOpen $R2 "$R1\\Claude Code Haha\\app-mode.json" r',
@@ -70,13 +70,13 @@ describe('Windows installer recovery prerequisites', () => {
     expect(installerHook).toContain('StrCmp $R3 \'  "portable_dir": null$\\n\'')
     expect(installerHook).toContain('FileClose $R2')
     expect(installerHook).toMatch(
-      /Call CcHahaCanSkipLegacyRecovery[\s\S]*No legacy data candidates found for the registered per-user installation[\s\S]*UAC_AsUser_Call Function CcHahaRecoverLegacy/,
+      /Call HahaCanSkipLegacyRecovery[\s\S]*No legacy data candidates found for the registered per-user installation[\s\S]*UAC_AsUser_Call Function HahaRecoverLegacy/,
     )
   })
 
   test('keeps no-CLR default and portable upgrade cases in Windows smoke', () => {
     const installerSmoke = readFileSync(
-      'desktop/scripts/windows-installer-smoke.ps1',
+      'web/scripts/windows-installer-smoke.ps1',
       'utf8',
     )
 

@@ -28,7 +28,7 @@ describe('feature quality contract', () => {
   test('keeps specialized agent guidance next to the affected code', () => {
     const policy = readFileSync('.github/AGENTS.md', 'utf8')
     const runtime = readFileSync('src/AGENTS.md', 'utf8')
-    const desktop = readFileSync('desktop/AGENTS.md', 'utf8')
+    const desktop = readFileSync('web/AGENTS.md', 'utf8')
     const adapters = readFileSync('adapters/AGENTS.md', 'utf8')
     const docs = readFileSync('docs/AGENTS.md', 'utf8')
 
@@ -38,7 +38,7 @@ describe('feature quality contract', () => {
     expect(runtime).toContain('`bun run check:server`')
     expect(runtime).toContain('temporary `HOME`/`CLAUDE_CONFIG_DIR`')
     expect(runtime).toContain('`bun run check:provider-contract`')
-    expect(desktop).toContain('`bun run check:desktop`')
+    expect(desktop).toContain('`bun run check:web`')
     expect(desktop).toContain('`bun run check:chat-contract`')
     expect(adapters).toContain('`bun run check:adapters`')
     expect(docs).toContain('`bun run check:docs`')
@@ -66,8 +66,8 @@ describe('feature quality contract', () => {
     expect(codeowners).toContain('/CONTRIBUTING.md @NanmiCoder')
     expect(codeowners).toContain('/scripts/pr/ @NanmiCoder')
     expect(codeowners).toContain('/scripts/quality-gate/ @NanmiCoder')
-    expect(codeowners).toContain('/desktop/src/api/websocket* @NanmiCoder')
-    expect(codeowners).toContain('/desktop/src/lib/persistenceMigrations* @NanmiCoder')
+    expect(codeowners).toContain('/web/src/api/websocket* @NanmiCoder')
+    expect(codeowners).toContain('/web/src/lib/persistenceMigrations* @NanmiCoder')
     expect(codeowners).toContain('/src/server/services/conversationService* @NanmiCoder')
     expect(codeowners).toContain('/src/server/proxy/ @NanmiCoder')
     expect(codeowners).toContain('/src/server/ws/ @NanmiCoder')
@@ -113,7 +113,7 @@ describe('feature quality contract', () => {
 
   test('keeps desktop native CI aligned with Electron packaging', () => {
     const prQuality = readFileSync('.github/workflows/pr-quality.yml', 'utf8')
-    const buildSidecars = readFileSync('desktop/scripts/build-sidecars.ts', 'utf8')
+    const buildSidecars = readFileSync('web/scripts/build-sidecars.ts', 'utf8')
 
     expect(prQuality).toContain('run: bun run check:native')
     expect(prQuality).not.toContain('dtolnay/rust-toolchain')

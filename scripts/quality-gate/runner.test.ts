@@ -80,10 +80,10 @@ describe('quality gate modes', () => {
     expect(currentPackageSmokeArch('arm64')).toBe('arm64')
     expect(currentPackageSmokeArch('x64')).toBe('x64')
     expect(currentPackageSmokeArch('ia32')).toBeNull()
-    expect(currentReleaseArtifactsDir('darwin', 'arm64')).toBe('desktop/build-artifacts/macos-arm64')
-    expect(currentReleaseArtifactsDir('darwin', 'x64')).toBe('desktop/build-artifacts/macos-x64')
-    expect(currentReleaseArtifactsDir('win32', 'x64')).toBe('desktop/build-artifacts/windows-x64')
-    expect(currentReleaseArtifactsDir('linux', 'arm64')).toBe('desktop/build-artifacts/linux-arm64')
+    expect(currentReleaseArtifactsDir('darwin', 'arm64')).toBe('web/build-artifacts/macos-arm64')
+    expect(currentReleaseArtifactsDir('darwin', 'x64')).toBe('web/build-artifacts/macos-x64')
+    expect(currentReleaseArtifactsDir('win32', 'x64')).toBe('web/build-artifacts/windows-x64')
+    expect(currentReleaseArtifactsDir('linux', 'arm64')).toBe('web/build-artifacts/linux-arm64')
     expect(currentReleaseArtifactsDir('freebsd', 'x64')).toBeNull()
   })
 
@@ -264,7 +264,7 @@ describe('runQualityGate', () => {
         description: 'Should be skipped',
         kind: 'command',
         command: ['bash', '-lc', 'exit 7'],
-        impactRequiredCheck: 'bun run check:desktop',
+        impactRequiredCheck: 'bun run check:web',
         requiredForModes: ['pr'],
       },
     ]
@@ -305,7 +305,7 @@ describe('runQualityGate', () => {
           '"Blocked: no"',
           '""',
           '"## Required local checks"',
-          '"- bun run check:desktop"',
+          '"- bun run check:web"',
         ].join(' ')],
         requiredForModes: ['pr'],
       },
@@ -315,7 +315,7 @@ describe('runQualityGate', () => {
         description: 'Should run',
         kind: 'command',
         command: ['bash', '-lc', 'exit 0'],
-        impactRequiredCheck: 'bun run check:desktop',
+        impactRequiredCheck: 'bun run check:web',
         requiredForModes: ['pr'],
       },
     ]
@@ -402,7 +402,7 @@ describe('runQualityGate', () => {
             'Blocked: no',
             '',
             '## Required local checks',
-            '- `bun run check:desktop`',
+            '- `bun run check:web`',
             '',
             '## Test coverage signals',
             '- No obvious missing-test signal from changed paths.',
@@ -425,7 +425,7 @@ describe('runQualityGate', () => {
       })
 
       expect(report.impact?.changedFiles).toBe(2)
-      expect(report.impact?.requiredChecks).toEqual(['`bun run check:desktop`'])
+      expect(report.impact?.requiredChecks).toEqual(['`bun run check:web`'])
       expect(report.coverage?.suites[0].lines?.pct).toBe(88)
       expect(report.artifacts.map((artifact) => artifact.path)).toContain(join(coverageDir, 'coverage-report.md'))
     } finally {
@@ -597,7 +597,7 @@ describe('renderMarkdownReport', () => {
         areas: ['desktop', 'server'],
         labels: ['allow-cli-core-change'],
         blocked: false,
-        requiredChecks: ['`bun run check:desktop`', '`bun run check:coverage`'],
+        requiredChecks: ['`bun run check:web`', '`bun run check:coverage`'],
         testCoverageSignals: ['No obvious missing-test signal from changed paths.'],
         riskNotes: ['Session runtime changed.'],
       },

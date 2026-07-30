@@ -27,7 +27,7 @@ jobs:
             const issue_number = context.payload.pull_request.number
 
             const managedLabels = {
-              'area:desktop': '1d76db',
+              'area:web': '1d76db',
               'area:server': '0e8a16',
               'area:adapters': '5319e7',
               'area:docs': '0075ca',
@@ -70,14 +70,14 @@ jobs:
               'scripts/pr/check-pr.ts',
               'scripts/pr/run-server-tests.ts',
               'scripts/release.ts',
-              'desktop/electron/tsconfig.json',
-              'desktop/scripts/build-linux.sh',
-              'desktop/scripts/build-macos-arm64.sh',
-              'desktop/scripts/build-windows-x64.ps1',
+              'web/electron/tsconfig.json',
+              'web/scripts/build-linux.sh',
+              'web/scripts/build-macos-arm64.sh',
+              'web/scripts/build-windows-x64.ps1',
             ])
 
             for (const filename of filenames) {
-              if (filename.startsWith('desktop/')) areas.add('area:desktop')
+              if (filename.startsWith('web/')) areas.add('area:web')
               if (filename.startsWith('src/server/')) areas.add('area:server')
               if (filename.startsWith('adapters/')) areas.add('area:adapters')
               if (filename.startsWith('docs/') || filename.startsWith('release-notes/') || docsExact.has(filename)) areas.add('area:docs')
@@ -102,7 +102,7 @@ jobs:
               !file.includes('/__tests__/') &&
               !file.includes('/fixtures/')
             )
-            const desktopProduct = changedProduct((file) => file.startsWith('desktop/src/'))
+            const desktopProduct = changedProduct((file) => file.startsWith('web/src/'))
             const serverProduct = changedProduct((file) => file.startsWith('src/server/'))
             const adapterProduct = changedProduct((file) => file.startsWith('adapters/'))
             const agentRuntimeProduct = changedProduct((file) =>
@@ -116,7 +116,7 @@ jobs:
               !file.startsWith('src/utils/')
             )
             const missingTestSignals = []
-            if (desktopProduct.length > 0 && !hasTest('desktop/src/')) {
+            if (desktopProduct.length > 0 && !hasTest('web/src/')) {
               missingTestSignals.push('Desktop product files changed without a desktop test file in the PR.')
             }
             if (serverProduct.length > 0 && !hasTest('src/server/')) {
@@ -161,10 +161,10 @@ jobs:
             }
 
             const riskNotes = []
-            if (filenames.some((file) => file.startsWith('desktop/src-tauri/'))) {
+            if (filenames.some((file) => file.startsWith('web/src-tauri/'))) {
               riskNotes.push('Legacy native resources changed: inspect Electron sidecar/package output and package-smoke results.')
             }
-            if (filenames.some((file) => file.startsWith('desktop/src/stores/') || file.startsWith('desktop/src/api/'))) {
+            if (filenames.some((file) => file.startsWith('web/src/stores/') || file.startsWith('web/src/api/'))) {
               riskNotes.push('Desktop state/API layer changed: verify store persistence, WebSocket behavior, and startup errors.')
             }
             if (filenames.some((file) => file.startsWith('src/server/ws/') || file.startsWith('src/server/services/conversation'))) {

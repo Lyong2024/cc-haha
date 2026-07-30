@@ -10,8 +10,8 @@ order: 0
 Claude Code Haha looks like one desktop app, but it is five pieces of code that each run on their own. Before reading source or opening a PR, get the boundaries straight — every other page in this section lives inside one of them.
 
 ```text
-desktop/src/          Frontend — React + Zustand. Draws the UI, touches no native capability.
-desktop/electron/     Desktop shell — Electron main process: windows, updates, terminals, native preview.
+web/src/          Frontend — React + Zustand. Draws the UI, touches no native capability.
+web/electron/     Desktop shell — Electron main process: windows, updates, terminals, native preview.
 src/server/           Local server — REST + WebSocket on Bun.serve, shared by desktop and phone.
 src/                  CLI core — agent loop, tool system, permissions, memory, skills.
 adapters/             IM bridges — one sidecar per platform, all wired back to the same sessions.
@@ -21,7 +21,7 @@ Three facts are worth holding onto:
 
 - **The CLI core is the only thing that executes.** Every desktop session makes the server spawn a CLI subprocess; every button in the frontend eventually becomes a message sent to it.
 - **The local server is the only entry point.** Desktop, mobile H5, and IM adapters share one REST and WebSocket surface — they differ only in how much they are trusted.
-- **Electron is the current desktop path.** `desktop/src-tauri/` keeps packaging assets and historical code as a rollback option; it is not the runtime.
+- **Electron is the current desktop path.** `web/src-tauri/` keeps packaging assets and historical code as a rollback option; it is not the runtime.
 
 ## How the CLI core is layered
 
@@ -61,4 +61,4 @@ Every tool registers in one registry, grouped by capability: files, shell, syste
 | What to run before a PR, and the release process | [Contributing and quality gates](./contributing.md) |
 | Running the CLI in a terminal or from a script | [CLI install and run](../cli/index.md) |
 
-Product features are covered elsewhere — start from [Get started](../start/index.md) and [Desktop features](../desktop/index.md).
+Product features are covered elsewhere — start from [Get started](../start/index.md) and [Desktop features](../web/index.md).

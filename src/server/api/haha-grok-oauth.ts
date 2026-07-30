@@ -29,12 +29,36 @@ export async function handleHahaGrokOAuthApi(
     }
 
     if (action === undefined && req.method === 'GET') {
+      // Phase B: logged-in if pool has any account (or legacy single tokens).
+      try {
+        const { grokAccountPoolService } = await import('../services/grokAccountPoolService.js')
+        const pool = await grokAccountPoolService.loadPool()
+        if (pool.accounts.length > 0) {
+          const tokens = await hahaGrokOAuthService.ensureFreshTokens()
+          const preferred = pool.preferredAccountId
+            ? pool.accounts.find((a) => a.id === pool.preferredAccountId)
+            : null
+          return Response.json({
+            loggedIn: true,
+            expiresAt: tokens?.expiresAt ?? null,
+            email: tokens?.email ?? preferred?.email ?? pool.accounts[0]?.email ?? null,
+            accountCount: pool.accounts.length,
+            preferredAccountId: pool.preferredAccountId,
+            strategy: pool.preferredAccountId ? 'preferred' : 'round_robin',
+          })
+        }
+      } catch {
+        // fall through
+      }
       const tokens = await hahaGrokOAuthService.ensureFreshTokens()
       if (!tokens) return Response.json({ loggedIn: false })
       return Response.json({
         loggedIn: true,
         expiresAt: tokens.expiresAt,
         email: tokens.email,
+        accountCount: 1,
+        preferredAccountId: null,
+        strategy: 'round_robin',
       })
     }
 

@@ -51,6 +51,6 @@ Work through these in order; about twenty minutes gets you to a working first se
 1. [Download and install](./install.md) — installers for all three platforms, and what to do when the OS blocks them.
 2. [Connect a model](./models.md) — official accounts, third-party APIs, or local models. Pick one.
 3. [Run your first session](./first-session.md) — pick a folder, set permissions, state a goal, watch it work, review the diff.
-4. [Desktop feature map](../desktop/index.md) — once it's running, see what else is in the box.
+4. [Desktop feature map](../web/index.md) — once it's running, see what else is in the box.
 
 Stuck along the way? [Won't install, won't open, won't connect](./troubleshooting.md) is organized by symptom.

@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises'
-import * as os from 'os'
 import * as path from 'path'
+import { resolveHahaOAuthFile } from './ccHahaPaths.js'
 import { AuthCodeListener } from '../../services/oauth/auth-code-listener.js'
 import {
   buildGrokAuthorizeUrl,
@@ -28,6 +28,10 @@ export type StoredGrokOAuthTokens = {
   idToken?: string | null
   email: string | null
   clientId?: string | null
+  /** User-editable display name on the Grok official card (grok2api-style). */
+  displayName?: string | null
+  /** First successful login time (ISO). */
+  createdAt?: string | null
 }
 
 export type GrokOAuthSession = {
@@ -68,8 +72,7 @@ function escapeHtml(value: string): string {
 }
 
 export function getHahaGrokOAuthFilePath(): string {
-  const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude')
-  return path.join(configDir, 'cc-haha', 'grok-oauth.json')
+  return resolveHahaOAuthFile('grok-oauth.json')
 }
 
 export class HahaGrokOAuthService {
@@ -85,6 +88,14 @@ export class HahaGrokOAuthService {
   }
 
   async loadTokens(): Promise<StoredGrokOAuthTokens | null> {
+    // Phase B: prefer multi-account pool pick (sticky preferred or round-robin).
+    try {
+      const { grokAccountPoolService } = await import('./grokAccountPoolService.js')
+      const fromPool = await grokAccountPoolService.getActiveTokens()
+      if (fromPool) return fromPool
+    } catch {
+      // fall through to legacy single-file
+    }
     try {
       return JSON.parse(await fs.readFile(this.getOAuthFilePath(), 'utf-8')) as StoredGrokOAuthTokens
     } catch (error) {
@@ -94,6 +105,20 @@ export class HahaGrokOAuthService {
   }
 
   async saveTokens(tokens: StoredGrokOAuthTokens): Promise<void> {
+    // Keep pool + legacy mirror in sync when writing the active credential.
+    try {
+      const { grokAccountPoolService } = await import('./grokAccountPoolService.js')
+      const pool = await grokAccountPoolService.loadPool()
+      const picked = grokAccountPoolService.pickAccount(pool)
+      if (picked) {
+        await grokAccountPoolService.updateAccountTokens(picked.id, tokens)
+        return
+      }
+      await grokAccountPoolService.upsertFromLogin(tokens)
+      return
+    } catch {
+      // fall through
+    }
     const filePath = this.getOAuthFilePath()
     await fs.mkdir(path.dirname(filePath), { recursive: true })
     const temporaryPath = `${filePath}.tmp.${process.pid}.${Date.now()}`
@@ -108,6 +133,12 @@ export class HahaGrokOAuthService {
   }
 
   async deleteTokens(): Promise<void> {
+    try {
+      const { grokAccountPoolService } = await import('./grokAccountPoolService.js')
+      await grokAccountPoolService.clearAll()
+    } catch {
+      // ignore
+    }
     await fs.rm(this.getOAuthFilePath(), { force: true })
   }
 
@@ -188,15 +219,84 @@ export class HahaGrokOAuthService {
       idToken: normalized.idToken ?? null,
       email: normalized.email ?? null,
       clientId: normalized.clientId ?? null,
+      displayName: null,
+      createdAt: new Date().toISOString(),
     }
-    await this.saveTokens(tokens)
+    // Phase B: add/update account in pool (multi-login accumulates accounts).
+    // Always also mirror legacy grok-oauth.json for desktop/cc-haha compatibility.
+    try {
+      const { grokAccountPoolService } = await import('./grokAccountPoolService.js')
+      const acc = await grokAccountPoolService.upsertFromLogin(tokens)
+      tokens.displayName = acc.displayName
+      tokens.createdAt = acc.createdAt
+    } catch (err) {
+      console.warn(
+        '[hahaGrokOAuth] pool upsert failed, writing legacy file only:',
+        err instanceof Error ? err.message : err,
+      )
+      // Direct legacy write (saveTokens may recurse into empty pool)
+      const filePath = this.getOAuthFilePath()
+      await fs.mkdir(path.dirname(filePath), { recursive: true })
+      await fs.writeFile(filePath, `${JSON.stringify(tokens, null, 2)}\n`, { mode: 0o600 })
+    }
+    // Make Grok Official the default provider after a successful login.
+    // Settings treats activeId === null as Claude Official; without this step the
+    // green "Default" badge stays on Claude even though Grok OAuth succeeded.
+    await this.activateGrokOfficialProvider().catch((err) => {
+      console.warn(
+        '[hahaGrokOAuth] login succeeded but failed to activate grok-official as default:',
+        err instanceof Error ? err.message : err,
+      )
+    })
     return tokens
+  }
+
+  private async activateGrokOfficialProvider(): Promise<void> {
+    // Dynamic import avoids a static cycle with providerService → hahaGrokOAuthService.
+    const { ProviderService } = await import('./providerService.js')
+    await new ProviderService().activateProvider('grok-official')
+  }
+
+  private mergePreservedMeta(
+    previous: StoredGrokOAuthTokens,
+    next: {
+      accessToken: string
+      refreshToken: string | null
+      expiresAt: number | null
+      idToken?: string | null
+      email?: string | null
+      clientId?: string | null
+    },
+  ): StoredGrokOAuthTokens {
+    return {
+      accessToken: next.accessToken,
+      refreshToken: next.refreshToken,
+      expiresAt: next.expiresAt,
+      idToken: next.idToken ?? null,
+      email: next.email ?? previous.email,
+      clientId: next.clientId ?? previous.clientId ?? null,
+      displayName: previous.displayName ?? null,
+      createdAt: previous.createdAt ?? new Date().toISOString(),
+    }
   }
 
   async ensureFreshTokens(): Promise<StoredGrokOAuthTokens | null> {
     const tokens = await this.loadTokens()
     if (!tokens) return null
-    if (tokens.expiresAt === null || !isGrokTokenExpired(tokens.expiresAt)) return tokens
+    if (tokens.expiresAt === null || !isGrokTokenExpired(tokens.expiresAt)) {
+      // Advance RR when not sticky so consecutive requests rotate healthy accounts.
+      try {
+        const { grokAccountPoolService } = await import('./grokAccountPoolService.js')
+        const pool = await grokAccountPoolService.loadPool()
+        const picked = grokAccountPoolService.pickAccount(pool)
+        if (picked && !pool.preferredAccountId) {
+          await grokAccountPoolService.advanceRoundRobin(picked.id)
+        }
+      } catch {
+        // ignore
+      }
+      return tokens
+    }
     if (!tokens.refreshToken) return null
     try {
       const response = await this.refreshFn(tokens.refreshToken, await this.getTokenFetchOptions())
@@ -208,19 +308,80 @@ export class HahaGrokOAuthService {
         ...(tokens.email ? { email: tokens.email } : {}),
         ...(tokens.clientId ? { clientId: tokens.clientId } : {}),
       }, response)
-      const updated: StoredGrokOAuthTokens = {
+      const updated = this.mergePreservedMeta(tokens, {
         accessToken: normalized.accessToken,
         refreshToken: normalized.refreshToken,
         expiresAt: normalized.expiresAt,
         idToken: normalized.idToken ?? null,
         email: normalized.email ?? null,
         clientId: normalized.clientId ?? null,
-      }
+      })
       await this.saveTokens(updated)
       return updated
     } catch (error) {
       logTokenRefreshFailure('[HahaGrokOAuthService]', error)
       return null
+    }
+  }
+
+  /**
+   * Always call the refresh endpoint when a refresh_token exists
+   * (user-initiated "刷新凭据", unlike ensureFreshTokens which is expiry-gated).
+   */
+  async forceRefreshTokens(): Promise<StoredGrokOAuthTokens> {
+    const tokens = await this.loadTokens()
+    if (!tokens) throw new Error('Grok OAuth 未登录')
+    if (!tokens.refreshToken) throw new Error('缺少 refresh_token，请重新登录 Grok')
+    try {
+      const response = await this.refreshFn(tokens.refreshToken, await this.getTokenFetchOptions())
+      const normalized = withRefreshedGrokAccessToken({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresAt: tokens.expiresAt,
+        ...(tokens.idToken ? { idToken: tokens.idToken } : {}),
+        ...(tokens.email ? { email: tokens.email } : {}),
+        ...(tokens.clientId ? { clientId: tokens.clientId } : {}),
+      }, response)
+      const updated = this.mergePreservedMeta(tokens, {
+        accessToken: normalized.accessToken,
+        refreshToken: normalized.refreshToken,
+        expiresAt: normalized.expiresAt,
+        idToken: normalized.idToken ?? null,
+        email: normalized.email ?? null,
+        clientId: normalized.clientId ?? null,
+      })
+      await this.saveTokens(updated)
+      return updated
+    } catch (error) {
+      logTokenRefreshFailure('[HahaGrokOAuthService]', error)
+      throw error instanceof Error ? error : new Error(String(error))
+    }
+  }
+
+  async updateDisplayName(name: string): Promise<StoredGrokOAuthTokens> {
+    const tokens = await this.loadTokens()
+    if (!tokens) throw new Error('Grok OAuth 未登录，无法重命名')
+    const trimmed = name.trim()
+    if (!trimmed) throw new Error('name is required')
+    const updated: StoredGrokOAuthTokens = {
+      ...tokens,
+      displayName: trimmed,
+      createdAt: tokens.createdAt ?? new Date().toISOString(),
+    }
+    await this.saveTokens(updated)
+    return updated
+  }
+
+  /** Export the on-disk auth file content (auth.json style). */
+  async exportAuthJson(): Promise<{
+    path: string
+    tokens: StoredGrokOAuthTokens
+  }> {
+    const tokens = await this.loadTokens()
+    if (!tokens) throw new Error('Grok OAuth 未登录，无凭证可导出')
+    return {
+      path: this.getOAuthFilePath(),
+      tokens,
     }
   }
 

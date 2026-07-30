@@ -10,8 +10,8 @@
  */
 
 import * as fs from 'fs/promises'
-import * as os from 'os'
 import * as path from 'path'
+import { resolveHahaOAuthFile } from './ccHahaPaths.js'
 import { logTokenRefreshFailure } from './oauthRefreshLog.js'
 import {
   generateCodeVerifier,
@@ -79,9 +79,7 @@ export class HahaOAuthService {
   }
 
   private getOAuthFilePath(): string {
-    const configDir =
-      process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude')
-    return path.join(configDir, 'cc-haha', 'oauth.json')
+    return resolveHahaOAuthFile('oauth.json')
   }
 
   async loadTokens(): Promise<StoredOAuthTokens | null> {

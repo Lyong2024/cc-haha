@@ -280,6 +280,7 @@ export async function handleSessionsApi(
 
 async function listSessions(req: Request, url: URL): Promise<Response> {
   const project = url.searchParams.get('project') || undefined
+  const agentCliId = url.searchParams.get('agentCliId') || undefined
   const requestedLimit = parseInt(url.searchParams.get('limit') || '20', 10)
   const offset = parseInt(url.searchParams.get('offset') || '0', 10)
 
@@ -294,6 +295,7 @@ async function listSessions(req: Request, url: URL): Promise<Response> {
   const limit = petAccess ? Math.min(requestedLimit, PET_SESSION_LIMIT) : requestedLimit
   const result = await sessionService.listSessions({
     ...(petAccess ? {} : { project }),
+    ...(petAccess ? {} : agentCliId ? { agentCliId } : { agentCliId: 'claude-code' }),
     limit,
     offset: petAccess ? 0 : offset,
   })
@@ -415,9 +417,19 @@ async function handleSessionWorkspaceRoute(
 }
 
 async function createSession(req: Request): Promise<Response> {
-  let body: { workDir?: string; repository?: CreateSessionRepositoryOptions; permissionMode?: string }
+  let body: {
+    workDir?: string
+    repository?: CreateSessionRepositoryOptions
+    permissionMode?: string
+    agentCliId?: string
+  }
   try {
-    body = (await req.json()) as { workDir?: string; repository?: CreateSessionRepositoryOptions; permissionMode?: string }
+    body = (await req.json()) as {
+      workDir?: string
+      repository?: CreateSessionRepositoryOptions
+      permissionMode?: string
+      agentCliId?: string
+    }
   } catch {
     throw ApiError.badRequest('Invalid JSON body')
   }
@@ -445,7 +457,20 @@ async function createSession(req: Request): Promise<Response> {
     }
   }
 
-  const result = await sessionService.createSession(body.workDir, body.repository, body.permissionMode)
+  // Non-Claude CLIs use /api/system/agent-cli/:id/sessions — keep Claude path pure.
+  const agentCliId = body.agentCliId?.trim() || 'claude-code'
+  if (agentCliId !== 'claude-code') {
+    throw ApiError.badRequest(
+      `Claude session API only supports agentCliId=claude-code; use /api/system/agent-cli/${agentCliId}/sessions for other CLIs`,
+    )
+  }
+
+  const result = await sessionService.createSession(
+    body.workDir,
+    body.repository,
+    body.permissionMode,
+    agentCliId,
+  )
   recentProjectsCache = null
   return Response.json(result, { status: 201 })
 }
@@ -820,7 +845,7 @@ function sameResolvedPath(left: string | null | undefined, right: string | null 
 }
 
 function getGitInfoCommandTimeoutMs(): number {
-  const raw = process.env.CC_HAHA_GIT_INFO_TIMEOUT_MS
+  const raw = process.env.HAHA_GIT_INFO_TIMEOUT_MS
   if (!raw) return DEFAULT_GIT_INFO_COMMAND_TIMEOUT_MS
   const parsed = Number(raw)
   return Number.isFinite(parsed) && parsed > 0

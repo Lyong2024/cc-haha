@@ -1,6 +1,7 @@
 import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { join } from 'path'
+import { resolveHahaDataDir } from '../server/services/ccHahaPaths.js'
 
 // Memoized: 150+ callers, many on hot paths. Keyed off CLAUDE_CONFIG_DIR so
 // tests that change the env var get a fresh value without explicit cache.clear.
@@ -13,8 +14,13 @@ export const getClaudeConfigHomeDir = memoize(
   () => process.env.CLAUDE_CONFIG_DIR,
 )
 
-export function getCcHahaDir(): string {
-  return join(getClaudeConfigHomeDir(), 'cc-haha')
+/**
+ * Product data root (`haha` or legacy `cc-haha`).
+ * Prefer resolveHahaDataDir so a scaffolded empty `haha/` does not hide a
+ * populated desktop install under `cc-haha`.
+ */
+export function getHahaDir(): string {
+  return resolveHahaDataDir()
 }
 
 export function getTeamsDir(): string {

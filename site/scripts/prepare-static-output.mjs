@@ -4,7 +4,7 @@ import path from 'node:path'
 import { generateDocsManifest, paths } from './generate-docs-manifest.mjs'
 
 const distDir = path.join(paths.siteDir, 'dist')
-const expectedCustomDomain = 'cchaha.ai'
+const expectedCustomDomain = 'Haha.ai'
 
 async function pathExists(targetPath) {
   return fs.access(targetPath).then(() => true, () => false)
@@ -202,10 +202,10 @@ async function writeSitemap(records) {
 const legacyRoutes = [
   '/agent', '/agent/01-usage-guide', '/agent/02-implementation', '/agent/03-agent-framework',
   '/channel', '/channel/01-channel-system', '/channel/02-im-gateway-proposal',
-  '/desktop/01-quick-start', '/desktop/02-architecture', '/desktop/03-features',
-  '/desktop/04-installation', '/desktop/05-FAQ', '/desktop/06-h5-access',
-  '/desktop/07-electron-migration-research', '/desktop/08-electron-migration-tasks',
-  '/desktop/09-electron-migration-validation-checklist', '/desktop/10-release-auto-update',
+  '/web/01-quick-start', '/web/02-architecture', '/web/03-features',
+  '/web/04-installation', '/web/05-FAQ', '/web/06-h5-access',
+  '/web/07-electron-migration-research', '/web/08-electron-migration-tasks',
+  '/web/09-electron-migration-validation-checklist', '/web/10-release-auto-update',
   '/docs', '/features/computer-use', '/features/computer-use-architecture',
   '/guide/cli-reference', '/guide/contributing', '/guide/env-vars', '/guide/faq',
   '/guide/global-usage', '/guide/quick-start', '/guide/third-party-models',

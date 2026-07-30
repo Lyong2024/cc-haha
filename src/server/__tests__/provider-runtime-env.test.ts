@@ -37,7 +37,7 @@ describe('providerRuntimeEnv', () => {
   })
 
   test('normalizes and preserves Grok Official as the active runtime provider', async () => {
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'grok-official',
       providers: [],
       providerOrder: ['claude-official', 'openai-official'],
@@ -45,7 +45,7 @@ describe('providerRuntimeEnv', () => {
 
     const env = mergeActiveProviderManagedEnv(
       {
-        CC_HAHA_OPENAI_OAUTH_PROVIDER: '1',
+        HAHA_OPENAI_OAUTH_PROVIDER: '1',
         OPENAI_CODEX_OAUTH_FILE: path.join(tmpDir, 'stale-openai-oauth.json'),
         ANTHROPIC_MODEL: 'stale-openai-model',
         DISABLE_AUTOUPDATER: '1',
@@ -54,22 +54,22 @@ describe('providerRuntimeEnv', () => {
     )
 
     expect(env).toMatchObject({
-      CC_HAHA_GROK_OAUTH_PROVIDER: '1',
-      GROK_OAUTH_FILE: path.join(tmpDir, 'cc-haha', 'grok-oauth.json'),
+      HAHA_GROK_OAUTH_PROVIDER: '1',
+      GROK_OAUTH_FILE: path.join(tmpDir, 'haha', 'grok-oauth.json'),
       ANTHROPIC_MODEL: 'grok-4.5',
       ANTHROPIC_DEFAULT_HAIKU_MODEL: 'grok-4.5',
       ANTHROPIC_DEFAULT_SONNET_MODEL: 'grok-4.5',
       ANTHROPIC_DEFAULT_OPUS_MODEL: 'grok-4.5',
       DISABLE_AUTOUPDATER: '1',
     })
-    expect(env.CC_HAHA_OPENAI_OAUTH_PROVIDER).toBeUndefined()
+    expect(env.HAHA_OPENAI_OAUTH_PROVIDER).toBeUndefined()
     expect(env.OPENAI_CODEX_OAUTH_FILE).toBeUndefined()
     expect(env.ANTHROPIC_API_KEY).toBeUndefined()
     expect(env.ANTHROPIC_AUTH_TOKEN).toBeUndefined()
   })
 
   test('derives native Anthropic provider env from the active provider index', async () => {
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-1',
       providers: [
         {
@@ -143,7 +143,7 @@ describe('providerRuntimeEnv', () => {
   })
 
   test('active provider env overrides stale proxy settings while preserving unrelated env', async () => {
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-1',
       providers: [
         {
@@ -190,7 +190,7 @@ describe('providerRuntimeEnv', () => {
   })
 
   test('honors disabled tool search for native Anthropic providers', async () => {
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-1',
       providers: [
         {
@@ -218,7 +218,7 @@ describe('providerRuntimeEnv', () => {
   })
 
   test('honors disabled experimental betas for active providers', async () => {
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-1',
       providers: [
         {
@@ -246,7 +246,7 @@ describe('providerRuntimeEnv', () => {
   })
 
   test('keeps providers readable when stored tool search values are stringly typed', async () => {
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-1',
       providers: [
         {
@@ -275,7 +275,7 @@ describe('providerRuntimeEnv', () => {
   })
 
   test('does not write tool search env for OpenAI proxy providers', async () => {
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-1',
       providers: [
         {
@@ -303,7 +303,7 @@ describe('providerRuntimeEnv', () => {
   })
 
   test('applies updated docs-backed preset env for domestic Anthropic-compatible providers', async () => {
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-kimi',
       providers: [
         {
@@ -340,7 +340,7 @@ describe('providerRuntimeEnv', () => {
       'kimi-for-coding-highspeed': 262144,
     })
 
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-kimi-legacy',
       providers: [
         {
@@ -371,7 +371,7 @@ describe('providerRuntimeEnv', () => {
       ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES: 'thinking,required_thinking',
     })
 
-    await writeJson(path.join(tmpDir, 'cc-haha', 'providers.json'), {
+    await writeJson(path.join(tmpDir, 'haha', 'providers.json'), {
       activeId: 'provider-zhipu',
       providers: [
         {

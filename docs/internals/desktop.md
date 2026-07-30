@@ -34,7 +34,7 @@ Electron main
 - **CLI 子进程** 执行模型请求、工具调用和 Agent 编排。
 - **Adapter Sidecar** 把 IM 平台消息桥接到同一套 Server/CLI 会话。
 
-`desktop/src-tauri/` 目前只是保留打包资源和历史代码的位置，不是桌面运行时。当前桌面 Host 是 Electron。
+`web/src-tauri/` 目前只是保留打包资源和历史代码的位置，不是桌面运行时。当前桌面 Host 是 Electron。
 
 ## 当前技术栈
 
@@ -47,7 +47,7 @@ Electron main
 | 终端 | node-pty、xterm.js | 原生 PTY 与终端渲染 |
 | 本地服务 | Bun、`Bun.serve` | HTTP API 与 WebSocket |
 
-版本以 `desktop/package.json` 为准。本页只列会影响架构理解的主版本，避免复制完整依赖清单。
+版本以 `web/package.json` 为准。本页只列会影响架构理解的主版本，避免复制完整依赖清单。
 
 ## Electron Host
 
@@ -55,12 +55,12 @@ Electron main
 
 | 路径 | 职责 |
 |---|---|
-| `desktop/electron/main.ts` | Electron main 入口、窗口与 IPC 注册 |
-| `desktop/electron/preload.ts` | 向主 renderer 暴露类型化 Host API |
-| `desktop/electron/preview-preload.ts` | 原生网页预览的隔离桥接 |
-| `desktop/electron/pet-preload.ts` | 宠物窗口的最小能力桥接 |
-| `desktop/electron/ipc/` | IPC channel 注册和 payload 校验 |
-| `desktop/electron/services/` | Sidecar、更新、终端、预览、窗口、代理等系统服务 |
+| `web/electron/main.ts` | Electron main 入口、窗口与 IPC 注册 |
+| `web/electron/preload.ts` | 向主 renderer 暴露类型化 Host API |
+| `web/electron/preview-preload.ts` | 原生网页预览的隔离桥接 |
+| `web/electron/pet-preload.ts` | 宠物窗口的最小能力桥接 |
+| `web/electron/ipc/` | IPC channel 注册和 payload 校验 |
+| `web/electron/services/` | Sidecar、更新、终端、预览、窗口、代理等系统服务 |
 
 Renderer 不应直接导入 Electron，也不应自行拼接任意 IPC channel。新增原生能力时，应同时更新 Host contract、main 侧校验和相关测试。
 
@@ -77,7 +77,7 @@ Server 可绑定局域网可访问地址以支持 H5，但桌面 Renderer 使用
 
 ### Sidecar 入口
 
-`desktop/sidecars/claude-sidecar.ts` 是统一入口：
+`web/sidecars/claude-sidecar.ts` 是统一入口：
 
 ```text
 claude-sidecar server   --app-root <path> --host <host> --port <port>
@@ -126,7 +126,7 @@ ws://<server>/ws/<sessionId>
 
 ### 心跳与重连
 
-当前 `desktop/src/api/websocket.ts` 的行为是：
+当前 `web/src/api/websocket.ts` 的行为是：
 
 - 连接后每 30 秒发送一次 `ping`。
 - 10 秒内没有收到 `pong`，客户端主动关闭连接并进入重连。
@@ -197,10 +197,10 @@ IM 平台
 
 ## 构建与验证
 
-桌面构建由 `desktop/package.json` 的脚本编排：
+桌面构建由 `web/package.json` 的脚本编排：
 
 ```bash
-cd desktop
+cd web
 bun run build:sidecars
 bun run build
 bun run build:electron

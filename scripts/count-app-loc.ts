@@ -14,7 +14,7 @@ type FileStat = Bucket & {
 
 const root = process.cwd()
 
-const targetRoots = ['adapters', 'desktop', 'runtime', 'src/server']
+const targetRoots = ['adapters', 'web', 'runtime', 'src/server']
 
 const codeExtensions = new Set([
   '.css',
@@ -55,8 +55,8 @@ const excludedDirectoryNames = new Set([
 ])
 
 const excludedRelativePaths = new Set([
-  'desktop/src-tauri/binaries',
-  'desktop/src-tauri/icons',
+  'web/src-tauri/binaries',
+  'web/src-tauri/icons',
 ])
 
 const files: FileStat[] = []
@@ -176,15 +176,15 @@ function areaForPath(path: string) {
     return 'server'
   }
 
-  if (path.startsWith('desktop/src/')) {
+  if (path.startsWith('web/src/')) {
     return 'desktop frontend'
   }
 
-  if (path.startsWith('desktop/src-tauri/')) {
+  if (path.startsWith('web/src-tauri/')) {
     return 'desktop tauri'
   }
 
-  if (path.startsWith('desktop/')) {
+  if (path.startsWith('web/')) {
     return 'desktop support'
   }
 

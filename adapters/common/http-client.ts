@@ -89,7 +89,7 @@ export class AdapterHttpClient {
       .map(resolveExistingProjectPath)
       .filter((value): value is string => Boolean(value))
     this.localAccessToken = options?.localAccessToken?.trim() ||
-      process.env.CC_HAHA_LOCAL_ACCESS_TOKEN?.trim() ||
+      process.env.HAHA_LOCAL_ACCESS_TOKEN?.trim() ||
       null
   }
 

@@ -12,7 +12,7 @@ let tempDir: string
 let previousConfigDir: string | undefined
 let previousFetch: typeof globalThis.fetch
 let service: HahaGrokOAuthService
-const originalSystemProxyUrl = process.env.CC_HAHA_SYSTEM_PROXY_URL
+const originalSystemProxyUrl = process.env.HAHA_SYSTEM_PROXY_URL
 const originalHttpProxy = process.env.HTTP_PROXY
 const originalHttpsProxy = process.env.HTTPS_PROXY
 const originalLowerHttpProxy = process.env.http_proxy
@@ -37,7 +37,7 @@ afterEach(async () => {
   globalThis.fetch = previousFetch
   if (previousConfigDir === undefined) delete process.env.CLAUDE_CONFIG_DIR
   else process.env.CLAUDE_CONFIG_DIR = previousConfigDir
-  restoreEnv('CC_HAHA_SYSTEM_PROXY_URL', originalSystemProxyUrl)
+  restoreEnv('HAHA_SYSTEM_PROXY_URL', originalSystemProxyUrl)
   restoreEnv('HTTP_PROXY', originalHttpProxy)
   restoreEnv('HTTPS_PROXY', originalHttpsProxy)
   restoreEnv('http_proxy', originalLowerHttpProxy)
@@ -106,7 +106,7 @@ describe('HahaGrokOAuthService', () => {
   })
 
   test('uses direct, system, and manual network settings for token refresh', async () => {
-    process.env.CC_HAHA_SYSTEM_PROXY_URL = 'http://127.0.0.1:7897'
+    process.env.HAHA_SYSTEM_PROXY_URL = 'http://127.0.0.1:7897'
     process.env.HTTP_PROXY = 'http://stale-parent.example:8080'
     process.env.HTTPS_PROXY = 'http://stale-parent.example:8080'
     process.env.http_proxy = 'http://stale-parent.example:8080'

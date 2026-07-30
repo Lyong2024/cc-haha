@@ -50,16 +50,16 @@ Command-line host and port values take precedence over environment variables. Ke
 For a source launch, build the Desktop web assets first:
 
 ```bash
-cd desktop
+cd web
 bun run build
 cd ..
 bun run src/server/index.ts
 ```
 
-The server automatically finds `desktop/dist` in the repository. When starting from another directory, provide the absolute build path:
+The server automatically finds repo-root `dist/` (with a legacy fallback to `web/dist`). When starting from another directory, provide the absolute build path:
 
 ```bash
-CLAUDE_H5_DIST_DIR=/absolute/path/to/desktop/dist \
+CLAUDE_H5_DIST_DIR=/absolute/path/to/dist \
   bun run /absolute/path/to/src/server/index.ts
 ```
 
@@ -151,5 +151,5 @@ For remote use:
 | API or WebSocket returns `401` | H5 token is missing or stale, or the WebSocket lacks a query token |
 | Browser reports CORS | The page's exact Origin is in the H5 allowed-origin list |
 | WebSocket reconnects repeatedly | Proxy upgrade support, token forwarding, and proxy idle timeouts |
-| Page returns `404` | `desktop/dist` was not built or `CLAUDE_H5_DIST_DIR` is wrong |
+| Page returns `404` | Root `dist/` was not built or `CLAUDE_H5_DIST_DIR` is wrong |
 | Remote traffic is treated as local | The proxy removed both the public Host and every proxy-trace header |

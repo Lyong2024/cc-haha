@@ -2,6 +2,10 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import { MODEL_CONTEXT_WINDOWS_ENV_KEY } from '../../utils/model/modelContextWindows.js'
+import {
+  HAHA_DIR_NAME,
+  LEGACY_HAHA_DIR_NAME,
+} from './ccHahaPaths.js'
 import { PROVIDER_PRESETS } from '../config/providerPresets.js'
 import type {
   ApiFormat,
@@ -176,10 +180,31 @@ export function normalizeSavedProvider(provider: SavedProvider): SavedProvider {
   const {
     disableExperimentalBetas: rawDisableExperimentalBetas,
     model1mSupport: rawModel1mSupport,
+    importedFrom: rawImportedFrom,
     ...rest
   } = provider
   const rawProvider = provider as SavedProvider & Record<string, unknown>
   const model1mSupport = normalizeModel1mSupport(rawModel1mSupport)
+  const importedFrom =
+    rawImportedFrom
+    && typeof rawImportedFrom === 'object'
+    && typeof rawImportedFrom.sourceId === 'string'
+    && typeof rawImportedFrom.sourceLabel === 'string'
+    && typeof rawImportedFrom.externalId === 'string'
+    && typeof rawImportedFrom.importedAt === 'string'
+      ? {
+          sourceId: rawImportedFrom.sourceId,
+          sourceLabel: rawImportedFrom.sourceLabel,
+          externalId: rawImportedFrom.externalId,
+          importedAt: rawImportedFrom.importedAt,
+          ...(typeof rawImportedFrom.sourcePath === 'string'
+            ? { sourcePath: rawImportedFrom.sourcePath }
+            : {}),
+          ...(typeof rawImportedFrom.fingerprint === 'string'
+            ? { fingerprint: rawImportedFrom.fingerprint }
+            : {}),
+        }
+      : undefined
   return {
     ...rest,
     apiFormat: provider.apiFormat ?? 'anthropic',
@@ -188,6 +213,7 @@ export function normalizeSavedProvider(provider: SavedProvider): SavedProvider {
     toolSearchEnabled: normalizeToolSearchEnabled(rawProvider.toolSearchEnabled),
     ...(normalizeDisableExperimentalBetas(rawDisableExperimentalBetas) ? { disableExperimentalBetas: true } : {}),
     ...(model1mSupport !== undefined ? { model1mSupport } : {}),
+    ...(importedFrom ? { importedFrom } : {}),
   }
 }
 
@@ -429,12 +455,32 @@ export function buildProviderManagedEnv(
   }
 }
 
+/**
+ * Resolve providers.json under an explicit CLAUDE_CONFIG_DIR scope.
+ * The configDir argument is authoritative (tests + managedEnv pass a temp home).
+ * Prefer brand `haha/`, then legacy `cc-haha/` under that configDir only —
+ * do not jump to process HAHA_DATA_DIR (that is a different isolation mode).
+ */
+function resolveProvidersIndexPath(configDir: string): string {
+  const primaryDir = path.join(configDir, HAHA_DIR_NAME)
+  const primary = path.join(primaryDir, 'providers.json')
+  if (fs.existsSync(primary) || fs.existsSync(primaryDir)) {
+    return primary
+  }
+  const legacyDir = path.join(configDir, LEGACY_HAHA_DIR_NAME)
+  const legacy = path.join(legacyDir, 'providers.json')
+  if (fs.existsSync(legacy) || fs.existsSync(legacyDir)) {
+    return legacy
+  }
+  return primary
+}
+
 export function readActiveProviderManagedEnv(
   configDir: string,
   options?: { serverPort?: number },
 ): Record<string, string> | null {
   try {
-    const raw = fs.readFileSync(path.join(configDir, 'cc-haha', 'providers.json'), 'utf-8')
+    const raw = fs.readFileSync(resolveProvidersIndexPath(configDir), 'utf-8')
     const index = normalizeProvidersIndex(JSON.parse(raw))
     if (!index?.activeId) return null
 
@@ -458,7 +504,7 @@ export function readActiveProviderManagedEnv(
 
 export function activeProviderNeedsProxy(configDir: string): boolean {
   try {
-    const raw = fs.readFileSync(path.join(configDir, 'cc-haha', 'providers.json'), 'utf-8')
+    const raw = fs.readFileSync(resolveProvidersIndexPath(configDir), 'utf-8')
     const index = normalizeProvidersIndex(JSON.parse(raw))
     if (
       !index?.activeId ||

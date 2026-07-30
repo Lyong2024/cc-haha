@@ -12,6 +12,7 @@
 import * as fs from 'fs/promises'
 import * as os from 'os'
 import * as path from 'path'
+import { resolveHahaOAuthFile } from './ccHahaPaths.js'
 import { logTokenRefreshFailure } from './oauthRefreshLog.js'
 import { AuthCodeListener } from '../../services/oauth/auth-code-listener.js'
 import {
@@ -85,9 +86,7 @@ function escapeHtml(s: string): string {
 }
 
 export function getHahaOpenAIOAuthFilePath(): string {
-  const configDir =
-    process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude')
-  return path.join(configDir, 'cc-haha', 'openai-oauth.json')
+  return resolveHahaOAuthFile('openai-oauth.json')
 }
 
 export class HahaOpenAIOAuthService {

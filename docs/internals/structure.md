@@ -36,7 +36,7 @@ order: 3
 │       ├── proxy/                  # Provider 协议转换
 │       ├── middleware/             # Auth 与 CORS
 │       └── config/                 # Provider 预设
-├── desktop/
+├── web/
 │   ├── src/                        # React Renderer
 │   │   ├── api/                    # Server API / WebSocket 客户端
 │   │   ├── components/             # Chat、Workspace、Browser、布局组件
@@ -80,9 +80,9 @@ order: 3
 |---|---|---|
 | `src/entrypoints/cli.tsx` | Bun | CLI/TUI 与 Agent 工具 |
 | `src/server/index.ts` | Bun / `Bun.serve` | 本地 HTTP、WebSocket 与 H5 |
-| `desktop/electron/main.ts` | Electron main | 原生桌面 Host |
-| `desktop/src/` | Chromium Renderer | React 桌面 UI |
-| `desktop/sidecars/claude-sidecar.ts` | Bun 编译 Sidecar | 打包后的 Server、CLI 与 Adapter 入口 |
+| `web/electron/main.ts` | Electron main | 原生桌面 Host |
+| `web/src/` | Chromium Renderer | React 桌面 UI |
+| `web/sidecars/claude-sidecar.ts` | Bun 编译 Sidecar | 打包后的 Server、CLI 与 Adapter 入口 |
 | `adapters/<platform>/` | Bun Sidecar | 平台消息接入 |
 
-新增代码时应放在拥有该职责的边界内：桌面原生能力进入 `desktop/electron/`，共享业务 API 进入 `src/server/`，IM 平台差异进入 `adapters/<platform>/`，不要在 Renderer 中绕过这些边界。
+新增代码时应放在拥有该职责的边界内：桌面原生能力进入 `web/electron/`，共享业务 API 进入 `src/server/`，IM 平台差异进入 `adapters/<platform>/`，不要在 Renderer 中绕过这些边界。

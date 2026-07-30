@@ -8,14 +8,14 @@ This is not a public multi-tenant product login system. The design intentionally
 
 ## Non-Goals
 
-- Do not change the default desktop/Tauri local flow.
+- Do not change the default web/Tauri local flow.
 - Do not add account login, OAuth, user management, or short-lived session exchange in the first version.
 - Do not make every desktop-only feature mobile-first in the first version.
 - Do not expose unauthenticated remote API access.
 
 ## Current Context
 
-The desktop frontend is already a Vite SPA under `desktop/`. In non-Tauri browser mode, `desktop/src/lib/desktopRuntime.ts` accepts `?serverUrl=` and points the API client at that backend. The backend in `src/server/index.ts` can bind to a configured host and already requires auth for non-localhost hosts. The missing pieces are productized H5 settings, H5 token handling in the frontend, configurable CORS, WebSocket token support, and mobile-safe layout.
+The desktop frontend is already a Vite SPA under `web/`. In non-Tauri browser mode, `web/src/lib/desktopRuntime.ts` accepts `?serverUrl=` and points the API client at that backend. The backend in `src/server/index.ts` can bind to a configured host and already requires auth for non-localhost hosts. The missing pieces are productized H5 settings, H5 token handling in the frontend, configurable CORS, WebSocket token support, and mobile-safe layout.
 
 ## Product Shape
 
@@ -41,7 +41,7 @@ After connection, the phone opens the existing chat product with a mobile-optimi
 
 ### Server Configuration
 
-Persist H5 settings in the existing cc-haha managed settings path (`~/.claude/cc-haha/settings.json`), preserving unknown fields and keeping the user-owned `~/.claude/settings.json` untouched:
+Persist H5 settings in the existing haha managed settings path (`~/.claude/haha/settings.json`), preserving unknown fields and keeping the user-owned `~/.claude/settings.json` untouched:
 
 ```ts
 type H5AccessSettings = {
@@ -177,7 +177,7 @@ Narrow checks:
 
 Full checks before handoff:
 
-- `cd desktop && bun run test`
+- `cd web && bun run test`
 - `bun run check:server`
 - `bun run check:desktop`
 - `bun run verify` when the targeted lanes are green or report any pre-existing quality gate blocker explicitly.

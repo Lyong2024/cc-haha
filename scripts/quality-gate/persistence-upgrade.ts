@@ -15,7 +15,7 @@ const checks: Check[] = [
   {
     title: 'Desktop localStorage migrations',
     command: ['bun', 'run', 'test', '--', '--run', 'src/lib/persistenceMigrations.test.ts'],
-    cwd: 'desktop',
+    cwd: 'web',
   },
 ]
 

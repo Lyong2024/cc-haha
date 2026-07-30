@@ -23,8 +23,8 @@ Add a Codex app style project-open control to the desktop top-right toolbar. The
 
 ## Current Code Context
 
-- `desktop/src/components/layout/TabBar.tsx` already owns the top-right toolbar area with terminal and workspace-panel buttons.
-- `desktop/src/components/shared/RepositoryLaunchControls.tsx` owns the pre-session workDir, branch, and worktree launch controls.
+- `web/src/components/layout/TabBar.tsx` already owns the top-right toolbar area with terminal and workspace-panel buttons.
+- `web/src/components/shared/RepositoryLaunchControls.tsx` owns the pre-session workDir, branch, and worktree launch controls.
 - Active sessions expose working-directory context through session data, `SessionGitInfo`, and the existing `ProjectContextChip` usage in chat surfaces.
 - Server-side repository launch logic in `src/server/services/repositoryLaunchService.ts` already distinguishes source repo, requested workDir, and worktree path.
 - The current Tauri app already includes `@tauri-apps/plugin-shell` and `shell:allow-open`, but Tauri's current recommendation is the opener plugin for path/file-manager opening. The implementation plan can choose either a server API route or a Tauri command; the preferred design keeps platform detection and launching in the server/native boundary rather than scattering it through UI components.
@@ -142,9 +142,9 @@ Create a dedicated component rather than expanding `TabBar.tsx` with detection l
 
 Suggested files:
 
-- `desktop/src/api/openTargets.ts`
-- `desktop/src/stores/openTargetStore.ts`
-- `desktop/src/components/layout/OpenProjectMenu.tsx`
+- `web/src/api/openTargets.ts`
+- `web/src/stores/openTargetStore.ts`
+- `web/src/components/layout/OpenProjectMenu.tsx`
 - tests next to the component/store or in existing desktop test locations.
 
 Responsibilities:

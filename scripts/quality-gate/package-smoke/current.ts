@@ -28,7 +28,7 @@ if (import.meta.main) {
     '--package-kind',
     'dir',
     '--artifacts-dir',
-    'desktop/build-artifacts/electron',
+    'web/build-artifacts/electron',
   ]
   const arch = currentPackageSmokeArch()
   if (arch) {

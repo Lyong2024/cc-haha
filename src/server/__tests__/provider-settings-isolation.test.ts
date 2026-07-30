@@ -32,8 +32,8 @@ describe('provider settings isolation', () => {
     await fs.rm(tmpDir, { recursive: true, force: true })
   })
 
-  async function readCcHahaSettings(): Promise<Record<string, unknown>> {
-    const raw = await fs.readFile(path.join(tmpDir, 'cc-haha', 'settings.json'), 'utf-8')
+  async function readHahaSettings(): Promise<Record<string, unknown>> {
+    const raw = await fs.readFile(path.join(tmpDir, 'haha', 'settings.json'), 'utf-8')
     return JSON.parse(raw)
   }
 
@@ -46,7 +46,7 @@ describe('provider settings isolation', () => {
     }
   }
 
-  test('activating a provider writes only cc-haha/settings.json', async () => {
+  test('activating a provider writes only haha/settings.json', async () => {
     const minimax = await service.addProvider({
       presetId: 'minimax',
       name: 'MiniMax',
@@ -58,7 +58,7 @@ describe('provider settings isolation', () => {
 
     await service.activateProvider(minimax.id)
 
-    const settings = await readCcHahaSettings()
+    const settings = await readHahaSettings()
     const env = settings.env as Record<string, string>
     expect(env.ANTHROPIC_BASE_URL).toBe('https://api.minimaxi.com/anthropic')
     expect(env.ANTHROPIC_AUTH_TOKEN).toBe('sk-fake-test-key-for-testing-only')
@@ -94,7 +94,7 @@ describe('provider settings isolation', () => {
     })
 
     await service.activateProvider(minimax.id)
-    let settings = await readCcHahaSettings()
+    let settings = await readHahaSettings()
     let env = settings.env as Record<string, string>
     expect(env.ANTHROPIC_BASE_URL).toBe('https://api.minimaxi.com/anthropic')
     expect(JSON.parse(env.CLAUDE_CODE_MODEL_CONTEXT_WINDOWS)).toMatchObject({
@@ -104,7 +104,7 @@ describe('provider settings isolation', () => {
     })
 
     await service.activateProvider(relay.id)
-    settings = await readCcHahaSettings()
+    settings = await readHahaSettings()
     env = settings.env as Record<string, string>
     expect(env.ANTHROPIC_BASE_URL).toBe('https://api.jiekou.ai/anthropic')
     expect(env.ANTHROPIC_AUTH_TOKEN).toBe('sk-fake-test-key-for-testing-only')
@@ -117,10 +117,10 @@ describe('provider settings isolation', () => {
     expect(await originalSettingsExists()).toBe(false)
   })
 
-  test('activation preserves unrelated cc-haha settings and env', async () => {
-    await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
+  test('activation preserves unrelated haha settings and env', async () => {
+    await fs.mkdir(path.join(tmpDir, 'haha'), { recursive: true })
     await fs.writeFile(
-      path.join(tmpDir, 'cc-haha', 'settings.json'),
+      path.join(tmpDir, 'haha', 'settings.json'),
       JSON.stringify({
         customField: 'should_be_preserved',
         env: {
@@ -143,7 +143,7 @@ describe('provider settings isolation', () => {
     })
     await service.activateProvider(provider.id)
 
-    const settings = await readCcHahaSettings()
+    const settings = await readHahaSettings()
     const env = settings.env as Record<string, string>
     expect(env.ANTHROPIC_BASE_URL).toBe('https://api.jiekou.ai/anthropic')
     expect(env.ANTHROPIC_AUTH_TOKEN).toBe('sk_test')
@@ -153,9 +153,9 @@ describe('provider settings isolation', () => {
   })
 
   test('activateOfficial removes only provider-managed env', async () => {
-    await fs.mkdir(path.join(tmpDir, 'cc-haha'), { recursive: true })
+    await fs.mkdir(path.join(tmpDir, 'haha'), { recursive: true })
     await fs.writeFile(
-      path.join(tmpDir, 'cc-haha', 'settings.json'),
+      path.join(tmpDir, 'haha', 'settings.json'),
       JSON.stringify({ env: { EXISTING_VAR: 'keep-me' } }, null, 2),
     )
     const provider = await service.addProvider({
@@ -169,7 +169,7 @@ describe('provider settings isolation', () => {
     await service.activateProvider(provider.id)
     await service.activateOfficial()
 
-    const settings = await readCcHahaSettings()
+    const settings = await readHahaSettings()
     const env = settings.env as Record<string, string> | undefined
     expect(env?.ANTHROPIC_BASE_URL).toBeUndefined()
     expect(env?.ANTHROPIC_API_KEY).toBeUndefined()
@@ -178,7 +178,7 @@ describe('provider settings isolation', () => {
     expect(env?.EXISTING_VAR).toBe('keep-me')
   })
 
-  test('providers.json and cc-haha/settings.json stay isolated from Claude settings.json', async () => {
+  test('providers.json and haha/settings.json stay isolated from Claude settings.json', async () => {
     await fs.writeFile(
       path.join(tmpDir, 'settings.json'),
       JSON.stringify({
@@ -204,7 +204,7 @@ describe('provider settings isolation', () => {
     expect(original.env.ANTHROPIC_API_KEY).toBe('original-key')
     expect(original.effortLevel).toBe('high')
 
-    const haha = await readCcHahaSettings()
+    const haha = await readHahaSettings()
     const env = haha.env as Record<string, string>
     expect(env.ANTHROPIC_BASE_URL).toBe('https://api.minimaxi.com/anthropic')
     expect(env.ANTHROPIC_AUTH_TOKEN).toBe('sk-haha-key')
